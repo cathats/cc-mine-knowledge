@@ -1,0 +1,9 @@
+knowledge-base:
+  label: 知识库
+  permalink: /knowledge-base
+  description: 知识库建设与维护相关内容
+
+docs:
+  label: 文档
+  permalink: /docs-tag
+  description: 文档写作与沉淀

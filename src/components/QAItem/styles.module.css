@@ -1,0 +1,48 @@
+.card {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: var(--ifm-background-surface-color);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.question {
+  margin: 0;
+}
+
+.answerWrap {
+  position: relative;
+}
+
+.answer {
+  transition: filter 0.2s ease;
+}
+
+.masked {
+  filter: blur(6px);
+  user-select: none;
+}
+
+.toggle {
+  flex-shrink: 0;
+  border: 1px solid var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.toggle:hover {
+  background: var(--ifm-color-primary);
+  color: white;
+}
