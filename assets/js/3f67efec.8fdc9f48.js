@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunksite=self.webpackChunksite||[]).push([["1"],{1398(t){t.exports=JSON.parse('{"authors":[{"name":"cathats","title":"Knowledge Builder","page":{"permalink":"/cc-mine-knowledge/blog/authors/cathats"},"socials":{"github":"https://github.com/cathats"},"imageURL":"https://github.com/cathats.png","key":"cathats","count":1}]}')}}]);

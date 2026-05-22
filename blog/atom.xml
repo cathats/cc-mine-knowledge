@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="atom.xsl"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://cathats.github.io/cc-mine-knowledge/blog</id>
+    <title>CC Mine Knowledge Blog</title>
+    <updated>2026-05-22T00:00:00.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://cathats.github.io/cc-mine-knowledge/blog"/>
+    <subtitle>CC Mine Knowledge Blog</subtitle>
+    <icon>https://cathats.github.io/cc-mine-knowledge/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[知识库站点初始化完成]]></title>
+        <id>https://cathats.github.io/cc-mine-knowledge/blog/knowledge-base-online</id>
+        <link href="https://cathats.github.io/cc-mine-knowledge/blog/knowledge-base-online"/>
+        <updated>2026-05-22T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[今天把个人知识库升级为 Docusaurus 站点。]]></summary>
+        <content type="html"><![CDATA[<p>今天把个人知识库升级为 Docusaurus 站点。</p>
+<!-- -->
+<p>后续会持续更新：</p>
+<ul>
+<li class="">文档沉淀</li>
+<li class="">面试 QA</li>
+<li class="">项目经验与复盘</li>
+</ul>]]></content>
+        <author>
+            <name>cathats</name>
+        </author>
+        <category label="知识库" term="知识库"/>
+        <category label="文档" term="文档"/>
+    </entry>
+</feed>

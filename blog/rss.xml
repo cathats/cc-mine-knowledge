@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xsl" href="rss.xsl"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>CC Mine Knowledge Blog</title>
+        <link>https://cathats.github.io/cc-mine-knowledge/blog</link>
+        <description>CC Mine Knowledge Blog</description>
+        <lastBuildDate>Fri, 22 May 2026 00:00:00 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <language>zh-Hans</language>
+        <item>
+            <title><![CDATA[知识库站点初始化完成]]></title>
+            <link>https://cathats.github.io/cc-mine-knowledge/blog/knowledge-base-online</link>
+            <guid>https://cathats.github.io/cc-mine-knowledge/blog/knowledge-base-online</guid>
+            <pubDate>Fri, 22 May 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[今天把个人知识库升级为 Docusaurus 站点。]]></description>
+            <content:encoded><![CDATA[<p>今天把个人知识库升级为 Docusaurus 站点。</p>
+<!-- -->
+<p>后续会持续更新：</p>
+<ul>
+<li class="">文档沉淀</li>
+<li class="">面试 QA</li>
+<li class="">项目经验与复盘</li>
+</ul>]]></content:encoded>
+            <category>知识库</category>
+            <category>文档</category>
+        </item>
+    </channel>
+</rss>

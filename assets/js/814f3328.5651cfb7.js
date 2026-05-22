@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunksite=self.webpackChunksite||[]).push([["833"],{5513(e){e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"\u77E5\u8BC6\u5E93\u7AD9\u70B9\u521D\u59CB\u5316\u5B8C\u6210","permalink":"/cc-mine-knowledge/blog/knowledge-base-online","unlisted":false,"date":"2026-05-22T00:00:00.000Z"}]}')}}]);
