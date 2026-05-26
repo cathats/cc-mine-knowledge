@@ -2,12 +2,161 @@
 sidebar_position: 3
 ---
 
+import QAHtmlItem from "@site/src/components/QAHtmlItem";
+
 # # 三、AI Agent 架构与设计模式
 
-- 原页面锚点：[# 三、AI Agent 架构与设计模式](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#三、ai-agent-架构与设计模式)
+- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#三、ai-agent-架构与设计模式)
 
-<iframe
-  src="/poetries-ai-interview/AI面试题汇总.html#三、ai-agent-架构与设计模式"
-  style={{width: "100%", height: "80vh", border: "1px solid var(--ifm-color-emphasis-300)", borderRadius: "8px"}}
-  loading="lazy"
-/>
+<QAHtmlItem question={`41. 什么是 AI Agent？和普通 LLM 调用的区别？`} html={`<p>一句话：<strong>Agent = LLM + 工具 + 记忆 + 规划</strong>，能自己做决策、自己跑工具、自己修正错误。</p>
+<p>和普通 LLM 调用的区别用表格更清楚：</p>
+<table><thead><tr><th></th> <th>普通调用</th> <th>Agent</th></tr></thead> <tbody><tr><td>控制流</td> <td>单次问答</td> <td>循环（直到任务完成）</td></tr> <tr><td>工具</td> <td>无</td> <td>有，且能自己选</td></tr> <tr><td>状态</td> <td>无</td> <td>有上下文 / 记忆</td></tr> <tr><td>错误处理</td> <td>失败就退出</td> <td>自己重试 / 换路</td></tr> <tr><td>适合任务</td> <td>翻译、改写、抽取</td> <td>写代码、跑命令、查数据、写报告</td></tr></tbody></table>
+<p>经典例子：你让普通模型"创建一个 React + Vite 项目"，它只会告诉你命令；Cursor / Claude Code 这种 Agent 会<strong>自己写文件、跑命令、看报错再改</strong>——这才叫 Agent。</p>`} />
+
+<QAHtmlItem question={`42. ReAct Agent 怎么实现的？给个最小可运行骨架。`} html={`<div class="language-python extra-class"><pre class="language-python"><code><span class="token keyword">def</span> <span class="token function">run_agent</span><span class="token punctuation">(</span>user_input<span class="token punctuation">,</span> tools<span class="token punctuation">,</span> max_steps<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    history <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"role"</span><span class="token punctuation">:</span> <span class="token string">"system"</span><span class="token punctuation">,</span> <span class="token string">"content"</span><span class="token punctuation">:</span> SYSTEM_PROMPT<span class="token punctuation">}</span><span class="token punctuation">]</span>
+    history<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"role"</span><span class="token punctuation">:</span> <span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"content"</span><span class="token punctuation">:</span> user_input<span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">for</span> step <span class="token keyword">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>max_steps<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        resp <span class="token operator">=</span> llm<span class="token punctuation">.</span>chat<span class="token punctuation">(</span>messages<span class="token operator">=</span>history<span class="token punctuation">,</span> tools<span class="token operator">=</span>tools<span class="token punctuation">)</span>
+        msg <span class="token operator">=</span> resp<span class="token punctuation">.</span>choices<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">.</span>message
+        history<span class="token punctuation">.</span>append<span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+
+        <span class="token keyword">if</span> <span class="token keyword">not</span> msg<span class="token punctuation">.</span>tool_calls<span class="token punctuation">:</span>
+            <span class="token keyword">return</span> msg<span class="token punctuation">.</span>content  <span class="token comment"># 最终回答</span>
+
+        <span class="token keyword">for</span> call <span class="token keyword">in</span> msg<span class="token punctuation">.</span>tool_calls<span class="token punctuation">:</span>
+            result <span class="token operator">=</span> tool_registry<span class="token punctuation">[</span>call<span class="token punctuation">.</span>name<span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token operator">**</span>call<span class="token punctuation">.</span>arguments<span class="token punctuation">)</span>
+            history<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"role"</span><span class="token punctuation">:</span> <span class="token string">"tool"</span><span class="token punctuation">,</span>
+                <span class="token string">"tool_call_id"</span><span class="token punctuation">:</span> call<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">,</span>
+                <span class="token string">"content"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>result<span class="token punctuation">)</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">raise</span> RuntimeError<span class="token punctuation">(</span><span class="token string">"达到最大步数仍未完成"</span><span class="token punctuation">)</span>
+</code></pre></div>
+<p>关键点：</p>
+<ul><li>LLM 决定<strong>调工具</strong>还是<strong>直接给答案</strong>；</li> <li>每次调工具的结果都要塞回 history；</li> <li><strong>必须有 max_steps</strong>，否则可能无限循环；</li> <li>工具的 schema 是模型理解工具的唯一信息来源，<strong>描述要写好</strong>。</li></ul>`} />
+
+<QAHtmlItem question={`43. Plan-and-Execute Agent 和 ReAct 的区别？`} html={`<ul><li><strong>ReAct</strong>：边想边做。优点灵活，缺点中间一旦判断错容易跑偏；</li> <li><strong>Plan-and-Execute</strong>：<strong>先一次性规划出所有步骤</strong>，再按计划执行，必要时回头改计划。优点路径稳定，缺点对长程任务一次规划容易遗漏。</li></ul>
+<p>工程上常用<strong>混合</strong>：先 plan 出粗粒度大步骤，每个大步骤内部跑 ReAct 小循环。</p>`} />
+
+<QAHtmlItem question={`44. Agent Loop 在工程里有哪些常见坑？`} html={`<p>跑过的人都被坑过：</p>
+<ol><li><strong>死循环 / 振荡</strong>：模型反复调同一工具或在两个工具之间来回横跳；</li> <li><strong>Token 烧得飞快</strong>：每轮都把全量上下文带过去，几轮翻好几倍；</li> <li><strong>错误放大</strong>：第一步观察就理解错了，后面跟着错的方向越走越远；</li> <li><strong>越权 / 安全风险</strong>：没限制的话模型会调危险工具（删库、发邮件、<code>rm -rf</code>）；</li> <li><strong>不会停</strong>：自我反思没有终止条件，永远在"再确认一下"。</li></ol>
+<p>兜底动作（必做）：</p>
+<ul><li>设硬上限：<strong>max_steps、max_tokens、max_duration</strong>；</li> <li><strong>重复检测</strong>：同一工具同一参数连续 N 次直接停；</li> <li><strong>工具白名单 + 危险操作二次确认</strong>；</li> <li><strong>全链路日志</strong>：每步 prompt / tool_call / result 都落盘，事后能回放；</li> <li><strong>上下文压缩</strong>：旧轮次定期摘要。</li></ul>`} />
+
+<QAHtmlItem question={`45. Agent 怎么自己判断"任务完成了"？`} html={`<p>几种常见判定，按工程靠谱程度：</p>
+<ol><li><strong>显式工具返回 <code>final_answer</code></strong>：模型主动调"完成"工具；</li> <li><strong>没有 tool_calls 的回答</strong>：模型直接给文本输出（最常见）；</li> <li><strong>触发停止词 / 标签</strong>：比如输出 <code>&lt;done&gt;</code> 后中断；</li> <li><strong>外部判定</strong>：跑一个评测 LLM 判断"够不够"；</li> <li><strong>轮次上限</strong>：兜底，不能省。</li></ol>
+<p>不要只靠"模型自己判断"。</p>`} />
+
+<QAHtmlItem question={`46. 单 Agent vs 多 Agent 怎么选？`} html={`<p>复杂 Agent 产品基本是<strong>多 Agent 架构</strong>。原因：</p>
+<ol><li><strong>决策准确率更高</strong>：每个子 Agent 只看自己需要的 prompt，没有无关信息干扰；</li> <li><strong>Token 更省</strong>：不是每次都把所有工具描述塞进去，调用变多但单次更便宜；</li> <li><strong>可并行</strong>：主 Agent 派活，子 Agent 并发处理；</li> <li><strong>多角色互相纠错</strong>：A 写代码 B 评审 C 验证，比单 Agent 自反思靠谱。</li></ol>
+<p>什么时候<strong>不要</strong>多 Agent？</p>
+<ul><li>任务简单、步骤少、用户期待秒级响应；</li> <li>团队还没把单 Agent 跑稳就上多 Agent，反而更难调试。</li></ul>
+<blockquote><p>拿 Cursor / Claude Code 类比：早期是单 Agent，现在内部分了 plan、edit、verify、search 多个角色。</p></blockquote>`} />
+
+<QAHtmlItem question={`47. Reflexion / Self-Reflection 是什么？`} html={`<p>让 Agent 跑完一轮后<strong>自己评估这次结果好不好</strong>，如果不好就调整策略再跑一遍。</p>
+<p>简化流程：</p>
+<div class="language- extra-class"><pre class="language-text"><code>1. 跑一遍任务 → 拿到 result_v1
+2. 让 LLM 评估 result_v1 哪些地方不对 → 拿到 critique
+3. 把 critique 注入 prompt → 再跑 → result_v2
+</code></pre></div>
+<p>适合复杂推理 / 代码生成场景，对延迟敏感的不适合。</p>`} />
+
+<QAHtmlItem question={`48. Agent 怎么处理"用户中途打断"？`} html={`<p>前端这边几个动作必须做：</p>
+<ol><li>给请求加 <strong>AbortController</strong>，能取消正在跑的 fetch；</li> <li>服务端识别到客户端断连，<strong>立刻停止 LLM 调用 / 工具执行</strong>（OpenAI / Anthropic SDK 都支持中断）；</li> <li>已经写入的状态（数据库、文件）要有<strong>回滚或标记为中断</strong>的机制；</li> <li>重新拉对话时，把"被打断的轮次"作为状态显示给用户，让他决定继续还是重做。</li></ol>`} />
+
+<QAHtmlItem question={`49. Anthropic Agent SDK / Claude Code 这种 Agent 框架做了什么？`} html={`<p>把"Agent 工程的脏活"封装成开箱即用：</p>
+<ul><li><strong>Tool Calling 标准协议</strong>：统一的 schema / 错误处理；</li> <li><strong>多步骤循环</strong>：自动跑直到任务完成；</li> <li><strong>工具集合</strong>：内置 Read / Write / Edit / Bash / Search / WebFetch；</li> <li><strong>可观测</strong>：每步日志、回放、调试；</li> <li><strong>权限模型</strong>：哪些工具可以无确认跑、哪些必须用户点确认；</li> <li><strong>子 Agent / 多角色</strong>：内置 dispatch 能力。</li></ul>
+<p>前端工程师拿来即用，<strong>重点研究它的 system prompt 和工具 schema，比写自己的 Agent 框架更值</strong>。</p>`} />
+
+<QAHtmlItem question={`50. LangChain、LangGraph、CrewAI、AutoGen、Vercel AI SDK 选哪个？`} html={`<p>按需选：</p>
+<table><thead><tr><th>场景</th> <th>推荐</th></tr></thead> <tbody><tr><td>前端 / Next.js 项目快速做 Chat / 流式</td> <td>Vercel AI SDK</td></tr> <tr><td>后端做 Agent 工作流、链式调用</td> <td>LangChain</td></tr> <tr><td>多 Agent + 图编排</td> <td>LangGraph</td></tr> <tr><td>多角色协作（CEO / Eng / QA）模拟</td> <td>CrewAI / AutoGen</td></tr> <tr><td>企业内部用应用、可视化拖拽</td> <td>Dify / Coze / FastGPT</td></tr></tbody></table>
+<p>别问"哪个最好"，问你的<strong>用户是谁、任务多复杂、要不要私有化</strong>。</p>`} />
+
+<QAHtmlItem question={`51. Agent 工具描述写不好会怎样？`} html={`<p>模型理解工具靠的就是描述。描述写不好直接表现为：</p>
+<ul><li>模型<strong>该调没调</strong>（不知道这个工具能解决）；</li> <li><strong>调错工具</strong>（两个工具描述太像）；</li> <li><strong>传错参数</strong>（schema 字段名 / 必填项 / 枚举值没写清）；</li> <li><strong>传冗余参数</strong>（描述太长，模型脑补出不存在的字段）。</li></ul>
+<p>工具描述模板（亲测好用）：</p>
+<div class="language- extra-class"><pre class="language-text"><code>name: search_user_orders
+description: 根据用户 ID 查询该用户最近 30 天的订单列表，
+  返回订单 ID、状态、金额。**仅用于查询，不能创建或修改订单**。
+parameters:
+  user_id (string, required): 用户的唯一 ID，类似 'U-12345'。
+  limit (number, optional, default=10): 返回数量，最大 50。
+</code></pre></div>
+<p>经验：</p>
+<ul><li><strong>明确"能做什么"和"不能做什么"</strong>；</li> <li>给一个<strong>典型用法</strong>例子（用 # example 字段）；</li> <li>字段写<strong>取值范围、单位、格式</strong>；</li> <li>工具数量超过 15 个就要分组 / 分层加载，否则模型选错率飙升。</li></ul>`} />
+
+<QAHtmlItem question={`52. Agent 怎么调试？看哪些指标？`} html={`<p>最少四件套：</p>
+<ol><li><strong>每步 prompt + tool_call + result 日志</strong>（落盘 + 可搜索）；</li> <li><strong>步数分布</strong>：均值、p95、超过 N 步的 trace；</li> <li><strong>Token 消耗分布</strong>：哪些工具调用 token 异常高；</li> <li><strong>失败模式聚合</strong>：把失败 trace 按错误类型聚类，看是 prompt 问题 / 工具问题 / 模型问题。</li></ol>
+<p>工具推荐：<strong>LangSmith</strong>（最常见）、Helicone、Phoenix、Langfuse。</p>`} />
+
+<QAHtmlItem question={`53. Human-in-the-loop（HIL）是什么？什么时候必加？`} html={`<p>让用户在 Agent 关键步骤<strong>介入决策</strong>。</p>
+<p>必加的场景：</p>
+<ul><li><strong>不可逆操作</strong>：发邮件、付款、删数据；</li> <li><strong>金额超阈值</strong>：比如退款 &gt; 500；</li> <li><strong>跨权限操作</strong>：访问别的部门数据；</li> <li><strong>法律 / 合规风险点</strong>。</li></ul>
+<p>实现方式：Agent 跑到关键节点时，<strong>返回一个 pending 状态</strong>给前端，前端展示"是否继续"按钮，用户确认后再继续。状态保存到 DB，断线能恢复。</p>`} />
+
+<QAHtmlItem question={`54. Agent 的成本怎么优化？`} html={`<p>一套组合拳：</p>
+<ol><li><strong>小模型分流</strong>：简单分类 / 路由用 7B 小模型，复杂任务才给大模型；</li> <li><strong>Prompt Caching</strong>：长 system + 工具描述全部缓存；</li> <li><strong>工具结果裁剪</strong>：返回前砍掉不必要字段，别让模型读完整 SQL 输出；</li> <li><strong>历史摘要</strong>：旧轮次定期压成几句话；</li> <li><strong>并行 vs 串行</strong>：能并行的工具调用一定要并行（多数 SDK 支持）；</li> <li><strong>缓存层</strong>：常见问答先查缓存 / 向量库再决定要不要调模型。</li></ol>`} />
+
+<QAHtmlItem question={`55. LLM-as-Judge 是什么？`} html={`<p>用一个 LLM 评估另一个 LLM 的输出。</p>
+<p>典型场景：</p>
+<ul><li>跑 prompt 改进 A/B，让"裁判模型"对比两个回答打分；</li> <li>Agent 跑完后，让裁判模型判断"是否完成任务"；</li> <li>给数据集打偏好标签，省人工。</li></ul>
+<p>注意：</p>
+<ul><li>裁判模型要<strong>比被评估模型更强</strong>（GPT-4 当 Claude 4 的裁判没问题，反过来不行）；</li> <li><strong>明确评估维度</strong>（准确性 / 相关性 / 格式 / 礼貌），别让它笼统打个分；</li> <li>跑多个裁判取平均，<strong>减少裁判模型本身的偏差</strong>。</li></ul>`} />
+
+<QAHtmlItem question={`56. Agent 的延迟（Latency）怎么优化？`} html={`<p>最影响体感的几个动作：</p>
+<ol><li><strong>streaming</strong>：首 token 时间从几秒降到 1 秒内；</li> <li><strong>并行工具调用</strong>：多个工具同时跑而不是串；</li> <li><strong>小模型预筛 + 大模型精排</strong>；</li> <li><strong>预热 / Keep-alive</strong>：减少连接建立开销；</li> <li><strong>Prompt Caching 命中率</strong>；</li> <li><strong>边缘部署 / CDN</strong>：让首跳 RTT 更短。</li></ol>`} />
+
+<QAHtmlItem question={`57. Agent 怎么测？写得了单元测试吗？`} html={`<p>写得了，但要换思路：</p>
+<ul><li><strong>确定性部分</strong>：工具函数、parser、router 当普通函数测；</li> <li><strong>LLM 调用部分</strong>：mock 掉，或者用<strong>录制 / 回放</strong>（vcr 模式）；</li> <li><strong>整体端到端</strong>：写一组业务测试用例，跑全量，<strong>用 LLM-as-Judge 判通过</strong>，统计通过率作为回归指标。</li></ul>
+<p>不要追求 100% 通过，AI 系统天然有不确定性，<strong>关注趋势</strong>：每次改完通过率涨还是跌。</p>`} />
+
+<QAHtmlItem question={`58. AutoGPT、BabyAGI、Devin 这类"全自主 Agent"为什么不实用？`} html={`<p>理论很美，工程上一堆问题：</p>
+<ul><li><strong>目标偏移</strong>：开放性任务模型容易越走越远；</li> <li><strong>token 爆炸</strong>：跑几小时一两千美元下去了；</li> <li><strong>错误传播</strong>：早期错误后期放大；</li> <li><strong>没有 HIL 节点</strong>，跑错也没人能拦；</li> <li><strong>可观测差</strong>：跑完不知道为啥成 / 为啥败。</li></ul>
+<p>教训：<strong>生产用的 Agent 都是"半自主 + 有边界 + 有 HIL"</strong>，不是完全放飞。</p>`} />
+
+<QAHtmlItem question={`59. 怎么把现有产品改造成 Agent？`} html={`<p>务实步骤：</p>
+<ol><li><strong>找一个高价值的 workflow</strong>（比如客服处理退款），不要一上来全产品 Agent 化；</li> <li><strong>梳理这个 workflow 的所有手动步骤</strong>：每一步用了哪个内部接口；</li> <li>把这些接口<strong>包成 Tool</strong>（写好 schema + 描述）；</li> <li>写一个<strong>严格的 system prompt</strong>，限制 Agent 只能在这个 workflow 内做事；</li> <li><strong>HIL 卡关键节点</strong>（涉及钱、涉及不可逆）；</li> <li><strong>小流量灰度</strong>（5% → 20% → 50% → 100%），看转化和投诉。</li></ol>
+<p>不要"先做个 Agent 框架再说"。</p>`} />
+
+<QAHtmlItem question={`60. 一个 Agent 的"思考预算"应该怎么设？`} html={`<p>三个维度：</p>
+<ul><li><strong>最大步数</strong>（max_steps）：8 - 20 是常见范围，超过基本是死循环；</li> <li><strong>最大 token</strong>（max_total_tokens）：按业务任务复杂度估，比如 50k；</li> <li><strong>最大耗时</strong>（max_duration）：用户能忍受的上限，通常 60-120 秒。</li></ul>
+<p>任何一个达到上限就<strong>优雅终止</strong>：返回部分结果 + 说明"任务未完成"，<strong>不要让用户等永远</strong>。</p>`} />
+
+<QAHtmlItem question={`61. Computer Use Agent 是什么？`} html={`<p>Anthropic 在 Claude 上开放的能力：模型直接<strong>看屏幕截图、移动鼠标、敲键盘</strong>，跨任意 GUI 应用操作。</p>
+<p>工作流：</p>
+<ol><li>客户端截屏给模型；</li> <li>模型返回 <code>screenshot</code> / <code>mouse_move</code> / <code>mouse_click</code> / <code>key</code> / <code>type</code> 等动作；</li> <li>客户端执行动作，再截屏；</li> <li>循环直到任务完成。</li></ol>
+<p>适合：</p>
+<ul><li>没有 API 的老软件操作；</li> <li>跨多个软件协作的流程；</li> <li>浏览器自动化（替代 Selenium）。</li></ul>
+<p>风险：</p>
+<ul><li>慢（每步都要看截图）；</li> <li>贵（每次截图都是几千 token）；</li> <li>安全（模型实际在你电脑上操作）。</li></ul>
+<p>生产 Agent 优先选 API / MCP，<strong>Computer Use 是兜底</strong>。</p>`} />
+
+<QAHtmlItem question={`62. Agent 评测有哪些常用 benchmark？`} html={`<table><thead><tr><th>benchmark</th> <th>测什么</th></tr></thead> <tbody><tr><td><strong>SWE-bench</strong></td> <td>真实 GitHub issue 修复，软件工程能力</td></tr> <tr><td><strong>GAIA</strong></td> <td>多步真实世界任务（搜索、计算、推理）</td></tr> <tr><td><strong>AgentBench</strong></td> <td>多种工具调用场景</td></tr> <tr><td><strong>WebArena</strong></td> <td>浏览器操作能力</td></tr> <tr><td><strong>OSWorld</strong></td> <td>桌面 GUI 操作能力</td></tr> <tr><td><strong>τ-bench</strong></td> <td>客服 / 业务流程 Agent</td></tr> <tr><td><strong>HumanEval / MBPP</strong></td> <td>单函数代码生成（偏基础）</td></tr></tbody></table>
+<p>工程上常见：不直接跑 benchmark，而是<strong>自己造业务 case 集</strong> + 用 LLM-as-Judge 跑回归。</p>`} />
+
+<QAHtmlItem question={`63. Agent 的 Context Engineering 是什么？`} html={`<p>2026 年新词，本质是「<strong>精心构造 Agent 每一轮的输入</strong>」，被认为是比 Prompt Engineering 更高维的工作。</p>
+<p>包括：</p>
+<ul><li><strong>System Prompt 设计</strong>：角色、能力边界、风格；</li> <li><strong>工具描述精炼</strong>：哪些工具该加进来、怎么排序；</li> <li><strong>历史压缩 / 摘要</strong>：哪些保留、哪些丢；</li> <li><strong>检索结果拼接</strong>：RAG 召回片段放哪儿、怎么排版；</li> <li><strong>思考预算控制</strong>：CoT、reasoning 用不用；</li> <li><strong>格式约束</strong>：JSON Schema、XML 标签；</li> <li><strong>示例选择</strong>：动态 few-shot 检索最相关样例。</li></ul>
+<p>Claude Code、Cursor 这类工具内部最复杂的不是模型，而是 Context Engineering。</p>`} />
+
+<QAHtmlItem question={`64. Background Agent 和 Foreground Agent 区别？`} html={`<ul><li><strong>Foreground</strong>：用户直接对话的 Agent，重 TTFT、重交互、重打断；</li> <li><strong>Background</strong>：跑在后台的 Agent，时长可能几分钟到几小时（爬数据、跑测试、生成报告、监控告警）。</li></ul>
+<p>工程差异：</p>
+<table><thead><tr><th>维度</th> <th>Foreground</th> <th>Background</th></tr></thead> <tbody><tr><td>延迟</td> <td>关键</td> <td>不关键</td></tr> <tr><td>状态</td> <td>内存 / Redis</td> <td>必须持久化（DB / Checkpoint）</td></tr> <tr><td>中断恢复</td> <td>不需要</td> <td>必须支持</td></tr> <tr><td>失败重试</td> <td>用户重发</td> <td>自动重试</td></tr> <tr><td>可观测</td> <td>用户能看</td> <td>必须有 dashboard</td></tr> <tr><td>成本上限</td> <td>较低</td> <td>容易跑爆</td></tr></tbody></table>
+<p>Background Agent 必须有<strong>预算守门员</strong>：超步数 / 超 token / 超耗时自动停。</p>`} />
+
+<QAHtmlItem question={`65. Agent 的 Tool Selection 怎么优化？`} html={`<p>工具一多模型选错率飙升。优化套路：</p>
+<ol><li><strong>静态分组</strong>：按业务域分组，先路由再加载；</li> <li><strong>动态加载</strong>：用轻量分类器先选 top 5 工具再喂主 Agent；</li> <li><strong>MCP Resources / Skills</strong>：把工具按粒度分层；</li> <li><strong>工具描述加例子</strong>：模型容易抓「example 里的关键词」；</li> <li><strong>工具名加前缀</strong>：<code>order_*</code>、<code>user_*</code>、<code>payment_*</code>，命名上分组；</li> <li><strong>历史命中加权</strong>：用户上下文里最近用过的工具优先级提高。</li></ol>`} />
+
+<QAHtmlItem question={`66. Agent 出错后怎么定位？看 trace 看什么？`} html={`<p>trace 是 Agent 的「飞行记录仪」，按步骤回放：</p>
+<ol><li>每步的 prompt（system + history + tools） ；</li> <li>模型输出（tool_calls 或 final）；</li> <li>工具执行入参 / 出参 / 耗时；</li> <li>上下文 token 用量。</li></ol>
+<p>常见排错路径：</p>
+<ul><li><strong>第一步就跑偏</strong> → system prompt / 工具描述问题；</li> <li><strong>某步工具选错</strong> → 工具描述太相似 / 排序错；</li> <li><strong>工具调对了但执行错</strong> → 业务接口 bug；</li> <li><strong>跑到死循环</strong> → 工具结果格式让模型困惑，反复确认；</li> <li><strong>过早 final</strong> → 终止条件太宽松。</li></ul>
+<p>工具：LangSmith / Langfuse 看 trace 是基本功。</p>`} />
+
+<QAHtmlItem question={`67. Agent 怎么做 retry / fallback？`} html={`<p>不是简单的 try-catch。分层处理：</p>
+<ul><li><strong>工具调用失败</strong>：把 error 信息塞回 messages，让模型自己决定；</li> <li><strong>模型超时 / 限流</strong>：客户端重试（指数退避），切到备用模型；</li> <li><strong>整段步数耗尽</strong>：保存进度，返回"任务未完成 + 已完成的部分"；</li> <li><strong>格式解析失败</strong>：把错误塞回去让模型修；</li> <li><strong>检测到死循环</strong>：强制中断 + 报警 + 人工兜底。</li></ul>
+<p>不要让 Agent 静默失败。<strong>所有失败都要落日志 + 告警</strong>。</p>
+<hr/>`} />

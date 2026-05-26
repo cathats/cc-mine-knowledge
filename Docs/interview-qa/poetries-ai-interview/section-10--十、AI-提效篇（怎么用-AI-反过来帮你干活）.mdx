@@ -2,12 +2,233 @@
 sidebar_position: 10
 ---
 
+import QAHtmlItem from "@site/src/components/QAHtmlItem";
+
 # # 十、AI 提效篇（怎么用 AI 反过来帮你干活）
 
-- 原页面锚点：[# 十、AI 提效篇（怎么用 AI 反过来帮你干活）](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#十、ai-提效篇-怎么用-ai-反过来帮你干活)
+- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#十、ai-提效篇-怎么用-ai-反过来帮你干活)
 
-<iframe
-  src="/poetries-ai-interview/AI面试题汇总.html#十、ai-提效篇-怎么用-ai-反过来帮你干活"
-  style={{width: "100%", height: "80vh", border: "1px solid var(--ifm-color-emphasis-300)", borderRadius: "8px"}}
-  loading="lazy"
-/>
+<QAHtmlItem question={`211. 你日常用哪些 AI 工具？典型的工作流是什么？`} html={`<p>参考答案要素：</p>
+<ul><li><strong>写代码主战场</strong>：Cursor / Claude Code / Codex / Copilot 选 1-2 个；</li> <li><strong>写文档 / 写脚本 / 调研</strong>：ChatGPT / Claude / 通义；</li> <li><strong>画图 / 生图</strong>：Figma AI / Midjourney / 国内即梦；</li> <li><strong>会议 / 笔记</strong>：飞书妙记 / Notion AI / 通义听悟。</li></ul>
+<p>工作流示例（可参考改写）：</p>
+<blockquote><p>我用 Claude Code 做主力编码：早上接到需求 → 让 Claude Code 先读相关文件给出初步实现思路 → 我确认方案 → 让它写出来 + 跑测试 → 我 review + 局部修 → commit。一些零散的研究 / 文档我用 ChatGPT。每周复盘的时候让模型帮我总结这周的 commit。</p></blockquote>
+<p>讲得越具体越能加分。</p>`} />
+
+<QAHtmlItem question={`212. Cursor / Claude Code / Copilot 这些 AI 编程工具的本质区别？`} html={`<table><thead><tr><th></th> <th>Copilot</th> <th>Cursor</th> <th>Claude Code</th></tr></thead> <tbody><tr><td>主战场</td> <td>编辑器补全</td> <td>IDE 整合</td> <td>命令行 / Agent</td></tr> <tr><td>单次粒度</td> <td>单行 / 单函数</td> <td>多文件编辑</td> <td>跨任务 Agent</td></tr> <tr><td>主力模型</td> <td>OpenAI Codex / GPT-4</td> <td>多家可选</td> <td>Claude 系列</td></tr> <tr><td>上下文</td> <td>当前文件</td> <td>Workspace 全局</td> <td>工作目录 + 工具调用</td></tr> <tr><td>强项</td> <td>行内补全</td> <td>改造代码</td> <td>完成完整任务</td></tr> <tr><td>适合</td> <td>加速打字</td> <td>改造重构</td> <td>端到端开发</td></tr></tbody></table>
+<p>工程上常组合：<strong>Copilot 行内补全 + Cursor / Claude Code 端到端任务</strong>。</p>`} />
+
+<QAHtmlItem question={`213. AI 写代码最容易翻车的几种情况？`} html={`<p>实战踩坑：</p>
+<ol><li><strong>依赖虚构 API</strong>：模型编不存在的库函数 / 方法名；</li> <li><strong>版本不匹配</strong>：写的是旧版 API，你用的是新版（或反过来）；</li> <li><strong>静默改了无关代码</strong>：让它改 A，它顺手"优化"了 B、C、D；</li> <li><strong>删测试 / 删错误处理凑通过</strong>：测试跑不过它就改测试；</li> <li><strong>不读现有约定</strong>：项目里用 antd 它写 element-ui；</li> <li><strong>改完不验证</strong>：声称"已修复"但其实没跑。</li></ol>
+<p>面试讲出来这些细节就能加分。</p>`} />
+
+<QAHtmlItem question={`214. 怎么写一个高质量的 AI 编程指令？`} html={`<p>不要扔一句"帮我写个登录页"。结构化指令：</p>
+<div class="language- extra-class"><pre class="language-text"><code>背景：项目用 React 18 + Vite + antd 6 + zustand。
+任务：实现一个用户列表页，要求支持搜索、分页、删除。
+接口：GET /api/users?q=&amp;page=&amp;size= ，返回 { list, total }。
+约束：
+- 只改 src/pages/UserList/，别动其他文件。
+- 用 antd ProTable，不要重新造轮子。
+- 删除要二次确认。
+- 我已经有 useAuth、useApi hook，直接复用。
+完成标准：
+- 列表能渲染。
+- 搜索和分页能联动。
+- 删除有 message 反馈。
+- 写一个最小的 vitest 测试。
+</code></pre></div>
+<p>要点：<strong>背景 + 任务 + 边界 + 约束 + 完成标准</strong>，模型不会跑偏。</p>`} />
+
+<QAHtmlItem question={`215. AI 写完代码你怎么 review？`} html={`<p>一定要 review，不要直接 commit。最少这几步：</p>
+<ol><li><strong>读 diff</strong>：每一行都过一遍，看有没有"惊喜改动"；</li> <li><strong>跑测试 / 跑应用</strong>：能在本地跑通 + 关键路径过一遍；</li> <li><strong>typecheck + lint</strong>；</li> <li><strong>看依赖</strong>：有没有新增包，是不是必要；</li> <li><strong>看 commit message 是否准确</strong>：别让 AI 写 "fix everything"。</li></ol>
+<p>AI 写的代码 ≠ 你不用读。<strong>它写得快，但你署名</strong>。</p>`} />
+
+<QAHtmlItem question={`216. AI 帮调 bug 应该怎么用？`} html={`<p>无效用法：把报错堆栈丢过去问"怎么修"。</p>
+<p>更有效的用法：</p>
+<ol><li><strong>先描述上下文</strong>：项目结构、当前任务、最近改了什么；</li> <li><strong>完整堆栈 + 最小复现</strong>：错误信息 + 触发步骤；</li> <li><strong>告诉它你试过什么、排除了什么</strong>；</li> <li><strong>让它先</strong>给出<strong>几个假设</strong>，而不是直接给修复方案；</li> <li><strong>挨个验证假设</strong>，找到根因再修。</li></ol>
+<p>不要让 AI 替你思考根因，让它<strong>辅助你思考</strong>。</p>`} />
+
+<QAHtmlItem question={`217. AI 写单元测试该怎么用？`} html={`<p>容易踩的坑：</p>
+<ul><li>AI 写的测试<strong>只覆盖 happy path</strong>，没覆盖边界；</li> <li>测试<strong>和实现耦合太紧</strong>，重构就挂；</li> <li>mock 写错，测试根本没在测；</li> <li>看起来通过，实际没 assert 关键逻辑。</li></ul>
+<p>更好的用法：</p>
+<ol><li><strong>先告诉 AI 输入输出契约</strong>，让它写"测试用例描述"；</li> <li>你 review 测试用例<strong>够不够</strong>，再让它生成代码；</li> <li><strong>故意改坏实现</strong>，跑测试看能不能测出来（mutation testing 思路）；</li> <li><strong>测试要简单到一眼看懂</strong>，复杂测试反而藏 bug。</li></ol>`} />
+
+<QAHtmlItem question={`218. AI 帮 code review 怎么用？`} html={`<p>让 AI 做"第一道筛"是合理的：</p>
+<ul><li>自动跑 lint / type check 看不到的问题；</li> <li>命名 / 复杂度 / 副作用之类的"软指标"；</li> <li>安全 / 性能的一般性建议。</li></ul>
+<p>但<strong>不能替代人 review</strong>：</p>
+<ul><li>AI 看不到业务上下文；</li> <li>AI 容易给出"安全的废话"建议（什么都建议加 try/catch）；</li> <li>关键决策（API 设计、架构）还是要人拍。</li></ul>`} />
+
+<QAHtmlItem question={`219. AI 帮写文档 / commit message / PR 描述？`} html={`<p>完全可以，但有讲究：</p>
+<ul><li><strong>commit message</strong>：让 AI 看 diff 写一句话总结，<strong>你最后审一眼</strong>。我用过 <code>aicommit</code> 类工具，命中率 80% 但还是要改；</li> <li><strong>PR 描述</strong>：让 AI 看所有 commit 写 changelog 草稿，然后你补"为什么这么做"；</li> <li><strong>API 文档 / TSDoc</strong>：让 AI 看代码生成初稿，<strong>你必须 review 准确性</strong>；</li> <li><strong>README</strong>：自己写比让 AI 写更靠谱，README 是给人看的，要有"人味"。</li></ul>`} />
+
+<QAHtmlItem question={`220. AI 帮设计 API / 数据结构靠谱吗？`} html={`<p>不靠谱当主笔，靠谱当评审。</p>
+<ul><li>让 AI 给 3 个方案比让它给 1 个方案有用；</li> <li>让 AI 找出某个方案的潜在问题；</li> <li>让 AI 模拟"如果未来要加 X 字段，这个设计能不能扛"。</li></ul>
+<p>API 设计最关键的是<strong>业务理解</strong>，AI 不知道你的业务，所以决策权永远在你。</p>`} />
+
+<QAHtmlItem question={`221. AI 改造遗留代码（legacy code）的正确姿势？`} html={`<p>遗留代码最危险，常见错误：让 AI 一次性"重构这个文件"。</p>
+<p>更安全的方式：</p>
+<ol><li><strong>先让 AI 解释这段代码做了什么</strong>（让它先理解）；</li> <li><strong>写测试覆盖现有行为</strong>（用 AI 写测试）；</li> <li><strong>小步重构</strong>：一次只改一个函数 / 一个职责；</li> <li><strong>每次重构后跑测试</strong>；</li> <li><strong>保留原 commit，新建分支 / PR 做对比</strong>。</li></ol>
+<p>不要把"重构一万行代码"当成一个 prompt。</p>`} />
+
+<QAHtmlItem question={`222. AI 帮选技术栈 / 框架对比靠谱吗？`} html={`<p>部分靠谱：</p>
+<ul><li><strong>客观对比</strong>（性能、生态、上手成本）AI 给的信息 80% 准确；</li> <li><strong>结合业务的推荐</strong>不可信，因为它不了解你的业务；</li> <li><strong>最新信息</strong>（半年内的新框架、新版本）容易过时，必须查官网。</li></ul>
+<p>最佳用法：让 AI 列<strong>对比维度</strong>，然后你按维度自己拉数据。</p>`} />
+
+<QAHtmlItem question={`223. 怎么避免对 AI 过度依赖？`} html={`<p>实战感受：</p>
+<ul><li><strong>重要决策不让 AI 拍</strong>（架构、API 设计、技术栈选型）；</li> <li><strong>手感不能丢</strong>：定期写一段不用 AI 的代码，保持思维；</li> <li><strong>review 不外包</strong>：AI 写的也是你的代码，你要懂；</li> <li><strong>不要"我让 AI 写过了所以肯定对"</strong>：AI 错误率高于直觉；</li> <li><strong>写 prompt 比写代码更难</strong>：能说清需求才能让 AI 帮你，逻辑思考还是要练。</li></ul>`} />
+
+<QAHtmlItem question={`224. AI 帮做需求分析 / PRD 解析？`} html={`<p>实战用法：</p>
+<ol><li>把 PRD 丢给 AI，让它<strong>抽取</strong>需求点（功能、约束、验收标准）；</li> <li>让它<strong>指出含糊的地方</strong>（这里没说限制条件、这里和前面冲突）；</li> <li>让它<strong>列出实现要点</strong>（要建几张表、要改几个接口、要考虑哪些边界）；</li> <li>你拿着这份草稿去和产品对齐。</li></ol>
+<p>把 AI 当一个"会做笔记的实习生"，它善于结构化整理。</p>`} />
+
+<QAHtmlItem question={`225. 怎么让 AI 帮你"读代码 / 接手老项目"？`} html={`<p>接手陌生项目时最高效用法：</p>
+<ol><li>让 AI <strong>读项目根目录</strong> + <code>package.json</code> + <code>README</code> → 总结技术栈；</li> <li>让 AI <strong>看 src 目录结构</strong> → 推断架构分层；</li> <li>让 AI <strong>挑一条核心链路</strong>（比如"用户登录"）走读 → 解释主流程；</li> <li>你拿着这份"地图"去看代码，事半功倍。</li></ol>
+<p>Claude Code / Cursor / Codex 类工具特别擅长这件事。</p>`} />
+
+<QAHtmlItem question={`226. AI 写脚本（一次性 ops 脚本）的正确姿势？`} html={`<p>很多时候不值得自己写：迁移数据、清洗 log、跑 cron 任务。</p>
+<p>实战经验：</p>
+<ul><li><strong>明确输入输出</strong>：数据格式、文件路径、预期效果；</li> <li><strong>跑前先 dry-run</strong>：让 AI 加 <code>--dry-run</code> 模式打印不执行；</li> <li><strong>加日志 + 进度条</strong>：长时间脚本要能看进度；</li> <li><strong>可中断 + 可重入</strong>：跑一半挂了能从中间继续；</li> <li><strong>小数据集先跑一遍</strong>：再跑全量。</li></ul>`} />
+
+<QAHtmlItem question={`227. 让 AI 帮"写英文 / 改邮件 / 翻译" 的注意点？`} html={`<ul><li><strong>写英文邮件</strong>：明确风格（正式 / 友好 / 简短），明确收件人；</li> <li><strong>翻译</strong>：来回翻译看是否丢信息；</li> <li><strong>技术翻译</strong>：术语先 review，AI 容易把专业术语翻成日常词；</li> <li><strong>多语言文档</strong>：让 AI 翻一遍 + 找一个母语同事过一眼。</li></ul>`} />
+
+<QAHtmlItem question={`228. AI 帮"画架构图 / 时序图" 怎么用？`} html={`<p>实战流程：</p>
+<ol><li>让 AI 输出 Mermaid 代码：<code>graph LR / sequenceDiagram / classDiagram</code>；</li> <li>在 VSCode / Typora / Mermaid Live 里渲染看效果；</li> <li>不满意继续让 AI 改 mermaid；</li> <li>满意后导出 SVG / PNG 用到 PR / 文档里。</li></ol>
+<p>不要让 AI 直接画图（多模态生成图片可控性差），让它写代码。</p>`} />
+
+<QAHtmlItem question={`229. AI 帮"查文档 / 学新框架" 怎么用？`} html={`<ul><li><strong>官方文档先用 AI 摘要</strong>：但要 verify 关键代码，AI 容易把版本搞混；</li> <li><strong>新框架快速 onboarding</strong>：让 AI 给"5 个最常用的 API 示例"；</li> <li><strong>不要全信</strong>：新版 API 是 AI 训练后才出的，比如 React 19 / Next 16 的新特性 AI 容易写错；</li> <li><strong>代码示例必须自己跑</strong>：别信"我刚刚帮你写好"。</li></ul>`} />
+
+<QAHtmlItem question={`230. AI 帮"看性能 profile / 看 source map" 靠谱吗？`} html={`<p>部分靠谱：</p>
+<ul><li><strong>看 profile</strong>：让 AI 看 Chrome Performance / Lighthouse 报告<strong>总结瓶颈</strong>，靠谱；</li> <li><strong>看 minified 代码</strong>：AI 能读 source map 反映射后的代码，定位 bug；</li> <li><strong>优化建议</strong>：AI 给的是"通用建议"，你的项目特定优化它不懂。</li></ul>
+<p>更好的用法：你自己定位到瓶颈点 → 把那段代码喂给 AI 让它给优化方案。</p>`} />
+
+<QAHtmlItem question={`231. AI 工具的 cost 怎么控制？`} html={`<p>公司给的 AI 工具有预算，超了要被关怀。控制思路：</p>
+<ul><li><strong>选小模型</strong>：日常 80% 任务用 Haiku / GPT-4o-mini / DeepSeek 这种便宜模型；</li> <li><strong>大模型只在难任务上用</strong>：架构设计、复杂 debug；</li> <li><strong>避免重复对话</strong>：复杂任务一次问清楚，不要来回试探；</li> <li><strong>缓存常用 prompt</strong>：开发模板存起来；</li> <li><strong>关掉自动续传 / Background Agent</strong>：跑着不知道，就是烧钱。</li></ul>`} />
+
+<QAHtmlItem question={`232. AI 工具的"安全 / 数据合规"风险？`} html={`<p>工作中要警惕：</p>
+<ul><li><strong>不能把公司源代码 / 客户数据传给个人 ChatGPT 账户</strong>；</li> <li><strong>走公司统一网关 / 企业版</strong>（数据不进训练集）；</li> <li><strong>敏感字段（密钥、客户信息）脱敏后再问</strong>；</li> <li><strong>生成的代码也是代码，要走 code review，不要直接合</strong>。</li></ul>
+<p>面试里被问"你怎么保证用 AI 不泄密"，答出这几点就稳了。</p>`} />
+
+<QAHtmlItem question={`233. AI 工具帮做技术调研 / 写技术分享的工作流？`} html={`<ul><li><strong>第一步</strong>：明确要分享的主题 + 受众（前端组 / 全公司）；</li> <li><strong>第二步</strong>：让 AI 列大纲（10 - 15 个点）；</li> <li><strong>第三步</strong>：每个点让 AI 写 200 字初稿；</li> <li><strong>第四步</strong>：你补<strong>自己的例子 / 项目截图 / 失败经验</strong>——这部分 AI 写不出来；</li> <li><strong>第五步</strong>：让 AI 生成 PPT 用 Mermaid / Marp 大纲；</li> <li><strong>第六步</strong>：本地 review 修改，配图。</li></ul>
+<p>AI 帮你处理体力活，<strong>判断力和真实经验你自己出</strong>。</p>`} />
+
+<QAHtmlItem question={`234. 怎么用 AI 帮你"晋升 / 写自评"？`} html={`<p>不开玩笑，很多人这么用。但要小心：</p>
+<ul><li><strong>AI 不知道你做了什么</strong>：你得先列出来；</li> <li><strong>AI 容易写得"假大空"</strong>：让它优化"具体到指标 / 影响范围 / 协作角色"；</li> <li><strong>避免明显 AI 味</strong>：成段排比、抽象动词（赋能、闭环、抓手）多半要改；</li> <li><strong>最后自己读一遍</strong>：能不能复述出来。如果不能，说明写虚了。</li></ul>`} />
+
+<QAHtmlItem question={`235. 长期看，AI 对前端工程师意味着什么？`} html={`<p>实诚答法（面试这种题不要装高调）：</p>
+<ul><li><strong>门槛上升</strong>：以前写组件、调样式就能干活，现在这部分 AI 半秒做完；</li> <li><strong>架构 / 业务 / 系统设计 的权重上升</strong>：决策能力比写代码更值钱；</li> <li><strong>学习曲线变陡</strong>：跟不上 AI 工具的人会落后；</li> <li><strong>不是替代，是升级</strong>：会用 AI 的前端 &gt; 不会用 AI 的前端；</li> <li><strong>健康的心态</strong>：把 AI 当协作伙伴，不当奴隶也不当神。</li></ul>`} />
+
+<QAHtmlItem question={`236. 怎么用 AI 复盘一周 / 一月的 commit？`} html={`<p>实用工作流：</p>
+<ol><li><code>git log --since="1 week ago" --pretty=format:"%h %s%n%b" --no-merges</code> 拿到所有 commit；</li> <li>把列表喂给 AI，让它按主题分类（feature / bugfix / refactor / chore）；</li> <li>让它<strong>写两份</strong>：对内技术周报（细节） + 对外业务周报（成果）；</li> <li>你补"为什么这么做" + "踩过什么坑"。</li></ol>
+<p>提示词模板：</p>
+<div class="language- extra-class"><pre class="language-text"><code>帮我整理这一周的工作，按"完成的功能 / 解决的 bug / 重构 / 文档"四个分类。
+每项写 1 句话，强调对业务的影响和量化指标。
+风格简洁、可读、面向非技术 leader。
+</code></pre></div>`} />
+
+<QAHtmlItem question={`237. AI 帮处理 Excel / CSV / JSON 数据怎么用？`} html={`<p>实战路径：</p>
+<ul><li><strong>结构化整理</strong>：把"乱格式"的数据用 AI 转成规范 schema；</li> <li><strong>批量改写</strong>：让 AI 写 Python / Node 脚本，跑 dry-run 看输出再批量；</li> <li><strong>数据清洗</strong>：让 AI 列出"可能的脏数据模式"，再写规则过滤；</li> <li><strong>Excel 公式</strong>：让 AI 写复杂公式（VLOOKUP 嵌套、数组公式），可读性差但能跑；</li> <li><strong>直接 ChatGPT Data Analysis</strong>：上传文件让它跑代码（适合一次性分析，不要长期依赖）。</li></ul>
+<p>提示词模板：</p>
+<div class="language- extra-class"><pre class="language-text"><code>我有一份 CSV，字段是 [...]，目标是 [...]。
+请写一个 Node.js 脚本，要求：
+1. 支持 --dry-run 模式
+2. 异常数据写到 error.log
+3. 输出每一步进度
+</code></pre></div>`} />
+
+<QAHtmlItem question={`238. AI 帮做产品 / 设计 brainstorm？`} html={`<p>不是让 AI 拍板，是让 AI 当<strong>反弹墙</strong>：</p>
+<ul><li>让它列<strong>当前方案的潜在问题</strong>（10 个）；</li> <li>让它扮演<strong>典型用户</strong> / <strong>竞品</strong>给你提反馈；</li> <li>让它给<strong>3 个不同的解决方向</strong>让你选；</li> <li>让它<strong>模拟 5 年后</strong>这个产品会被怎么颠覆。</li></ul>
+<p>不要问"你觉得 XX 怎么样"（它一定说"很好"），要问"找 5 个理由说为什么不该做 XX"。</p>`} />
+
+<QAHtmlItem question={`239. AI 帮写周报 / 月报 / 述职报告？`} html={`<p>提示词技巧：</p>
+<ul><li><strong>先输入事实</strong>：列出"做了什么、改了什么文件、解了什么 bug"；</li> <li><strong>指定风格</strong>：简洁 / 详细 / 数据驱动 / 故事化；</li> <li><strong>限制字数</strong>；</li> <li><strong>指定结构</strong>：成果 / 难点 / 协作 / 改进；</li> <li><strong>要求量化</strong>：每点尽量带数字（前后对比、用户量、性能提升）。</li></ul>
+<p>最后一定<strong>自己读一遍</strong>：能不能口头复述出来？不能的话就是写虚了。</p>`} />
+
+<QAHtmlItem question={`240. AI 提效的"反模式"有哪些？`} html={`<p>工作中容易踩的坑：</p>
+<ol><li><strong>凡事先问 AI</strong>：简单事情靠 AI 反而慢；</li> <li><strong>AI 给的答案不验证</strong>：当成事实直接用；</li> <li><strong>代码 review 外包给 AI</strong>：自己不读就 commit；</li> <li><strong>AI 写的注释 / 文档不改</strong>：充满"如上所述、综上所述"；</li> <li><strong>越聊越长不止</strong>：来回十几轮还没解决，<strong>直接看文档 / 看源码</strong>更快；</li> <li><strong>过度依赖单一工具</strong>：AI 不可用时啥都不会做；</li> <li><strong>不积累自己的方法论</strong>：每次都重新问 AI，没有沉淀。</li></ol>
+<p>健康的工作流：先想 → 上 AI 加速 → review → 沉淀到 own playbook。</p>`} />
+
+<QAHtmlItem question={`241. AI 帮你"学新框架 / 新工具"的最快路径？`} html={`<p>参考流程：</p>
+<ol><li>让 AI 给你<strong>一份 30 分钟入门路径</strong>（核心概念 + 最小 demo）；</li> <li>让它<strong>对比你已会的框架</strong>（"React 开发者怎么理解 Svelte"）；</li> <li>跟着写一个<strong>最小可运行项目</strong>；</li> <li>让 AI 帮你<strong>列 5 个最常见踩坑 + 解决方案</strong>；</li> <li>实际项目尝试 → 出问题再回头问；</li> <li>一周后写一份<strong>自己的小结</strong>（强迫输出加深记忆）。</li></ol>
+<p>关键：<strong>别只看，要写</strong>。AI 让"看懂"变得容易，但只有"写出来"才真懂。</p>`} />
+
+<QAHtmlItem question={`242. AI 帮你做技术博客 / 知识沉淀？`} html={`<p>实战做法：</p>
+<ol><li><strong>大纲</strong>：让 AI 从你的笔记 / commits / 问答记录里抽取"值得写的话题"；</li> <li><strong>初稿</strong>：你列要点，AI 扩展段落；</li> <li><strong>改写</strong>：AI 给的初稿"AI 味"重，用"删形容词、加例子、加自己的话"三招过一遍；</li> <li><strong>配图</strong>：让 AI 生成 Mermaid 流程图 / 表格；</li> <li><strong>校对</strong>：让 AI 当 reviewer，从读者角度提"哪里不清楚"。</li></ol>
+<p>写完后：<strong>自己讲一遍能不能讲明白</strong>，是检验质量的硬指标。</p>`} />
+
+<QAHtmlItem question={`243. AI 帮你做 OKR / 目标拆解？`} html={`<p>公司层级 OKR 落到个人时，让 AI 帮你：</p>
+<ul><li>把<strong>模糊目标</strong>翻译成<strong>可衡量动作</strong>；</li> <li>让它列出<strong>潜在阻塞 / 依赖</strong>；</li> <li>让它<strong>模拟季度末复盘</strong>，提前看到"哪些指标会卡住"；</li> <li>给一份<strong>周维度的拆分计划</strong>。</li></ul>
+<p>记住：AI 给的是模板，<strong>真正的目标取舍只能你自己拍板</strong>。</p>`} />
+
+<QAHtmlItem question={`244. 怎么用 AI 提升英文 / 跨国协作？`} html={`<ul><li><strong>写英文邮件 / 文档</strong>：先中文起草，让 AI 翻译 + 优化语气；</li> <li><strong>接收英文长邮件 / PR review</strong>：让 AI 总结要点 + 列出"必须回应的问题"；</li> <li><strong>会议</strong>：飞书妙记 + Notion AI 自动转录 + 摘要；</li> <li><strong>跨时区沟通</strong>：让 AI 帮你写"非阻塞式回复"模板（明确说清楚下一步、避免无谓 ping）。</li></ul>
+<p>提示：英文表达从"语法对"到"地道"中间还有一大段，<strong>让 AI 多给几个候选</strong>自己挑。</p>`} />
+
+<QAHtmlItem question={`245. 用 AI 学竞品 / 做技术调研的工作流？`} html={`<p>参考流程：</p>
+<ol><li>收集<strong>竞品的公开资料</strong>（官网、文档、博客、PR）；</li> <li>让 AI 抽取"它解决了什么问题、用了什么技术、有什么独特性"；</li> <li>让 AI 对比"我们家做法 vs 竞品做法"；</li> <li>让 AI 帮你列<strong>问竞品的好问题</strong>（如果以后能聊到他们工程师）；</li> <li>自己亲测竞品，<strong>形成第一手感受</strong>——这个 AI 替代不了。</li></ol>`} />
+
+<QAHtmlItem question={`246. Claude Code 的架构是什么样的？`} html={`<p>理解 Claude Code 别只把它当成"命令行版 Cursor"。它本质是 <strong>Agent Loop + 多层治理</strong>：</p>
+<ul><li><strong>核心 Loop</strong>：标准 Agent Loop（思考 → 工具调用 → 观察 → 再思考），但循环里能调几十种内置工具；</li> <li><strong>工具层（Tools）</strong>：Read / Write / Edit / Bash / Grep / WebFetch / Agent / TodoWrite 等几十个，每个都有完整 schema；</li> <li><strong>MCP 层</strong>：通过 MCP 协议把外部能力（数据库 / Figma / 浏览器 / 自研工具）接进来；</li> <li><strong>Skills 层</strong>：可复用的"能力包"，包含 prompt + 工具组合 + 触发条件（如 <code>dev-guide</code> / <code>brainstorming</code>）；</li> <li><strong>Memory 层</strong>：<code>CLAUDE.md</code>（项目级）+ <code>~/.claude/CLAUDE.md</code>（全局）+ <code>memory/</code> 目录（结构化记忆）；</li> <li><strong>Hooks 层</strong>：用户可配置的脚本，能在工具调用前后插入校验 / 自动化动作；</li> <li><strong>Permissions 层</strong>：哪些工具自动允许、哪些每次问、哪些禁止。</li></ul>
+<p>记一句话：<strong>Claude Code 真正强的不是模型，是治理（governance）</strong>——这套分层让 AI 编程从"放飞"变成"可控"。</p>`} />
+
+<QAHtmlItem question={`247. Claude Code 的"治理"具体怎么做？`} html={`<p>四件套从粗到细：</p>
+<ol><li><strong>CLAUDE.md</strong>：项目级指令文件，约定技术栈、命令、不要做的事、不要碰的文件。每次会话自动加载；</li> <li><strong>Skills</strong>：把"对这个项目怎么干活"封装成可调用的能力。比如 <code>dev-guide</code> skill 列出本仓库所有命令 + 部署流程，模型按需读；</li> <li><strong>Hooks</strong>：在 <code>pre-commit</code>、<code>tool-call-before/after</code> 这些事件点跑用户脚本，能做格式化、敏感词过滤、危险命令拦截；</li> <li><strong>Permissions</strong>：<code>settings.json</code> 里精确控制哪些工具 / 哪些参数模式可以自动跑，哪些必须用户点确认。</li></ol>
+<p>实战收益：</p>
+<ul><li>团队新人接手项目，AI 自动遵守约定（避免反复教）；</li> <li>危险操作（<code>rm -rf</code>、<code>force-push</code>）必须人工二次确认；</li> <li>跨项目复用 Skills，省掉重复教模型。</li></ul>`} />
+
+<QAHtmlItem question={`248. 什么是 Spec-Driven Development（SDD）？为什么 AI 时代需要它？`} html={`<p>SDD = <strong>先写规范再写代码</strong>，本身不是新概念，但 AI 编程让它复活。</p>
+<p>为什么 AI 时代必须：</p>
+<ol><li><strong>AI 理解需求不靠谱</strong>：你说"加个登录"，它可能给你 Session 也可能 JWT，结果跑偏；</li> <li><strong>AI 写的代码缺决策上下文</strong>：关掉聊天窗口决策就没了，后来人看不懂为啥这么做；</li> <li><strong>AI 生成速度太快，review 跟不上</strong>：缺一层"先达成共识再让 AI 写"的过滤。</li></ol>
+<p>SDD 的核心动作：在让 AI 写代码前，先用文档把**「为什么 / 做什么 / 怎么做」**写清楚，模型按文档执行，结果可追溯、可对齐、可审计。</p>`} />
+
+<QAHtmlItem question={`249. OpenSpec 是什么？解决了什么问题？`} html={`<p>OpenSpec 是把 SDD 工程化的工具，主要解决 AI 编程的三个痛点：</p>
+<table><thead><tr><th>痛点</th> <th>OpenSpec 解法</th></tr></thead> <tbody><tr><td>需求偏差（AI 不懂你真要什么）</td> <td>用 <code>proposal.md</code> 把"为什么 / 不做会怎样"写下来</td></tr> <tr><td>设计漂移（AI 一会儿用方案 A 一会儿用方案 B）</td> <td>用 <code>design.md</code> 锁定架构决策、接口、数据流</td></tr> <tr><td>实施失控（AI 顺手改一堆无关代码）</td> <td>用 <code>tasks.md</code> 列出可验证的具体任务</td></tr> <tr><td>决策遗失（下次会话又重头讨论）</td> <td>用 <code>changes/</code> 目录归档每次变更的完整提案</td></tr></tbody></table>
+<p>工程上 OpenSpec 把"和 AI 聊天"变成"和 AI 共同维护一份蓝图"。</p>`} />
+
+<QAHtmlItem question={`250. OpenSpec 的核心三件套：proposal / design / tasks 各写什么？`} html={`<ul><li><strong><code>proposal.md</code></strong>：<strong>为什么要做</strong>。背景、业务痛点、不做的代价、成功标准。一两屏长度，不写技术；</li> <li><strong><code>design.md</code></strong>：<strong>技术怎么实现</strong>。架构决策、接口定义、数据流、依赖、风险点、备选方案对比。<strong>这是 AI 写代码时的事实来源</strong>；</li> <li><strong><code>tasks.md</code></strong>：<strong>具体要做哪些动作</strong>。可执行清单，每项粒度小到能被一次 <code>executing-plans</code> 跑完。</li></ul>
+<p>附加：</p>
+<ul><li><strong><code>specs/&lt;capability&gt;/spec.md</code></strong>：当前系统的稳定能力规范（事实记录，不是变更）；</li> <li><strong><code>changes/&lt;change-id&gt;/</code></strong>：每次变更的完整目录；</li> <li><strong><code>changes/archive/&lt;date&gt;-&lt;id&gt;/</code></strong>：完成后归档。</li></ul>`} />
+
+<QAHtmlItem question={`251. OpenSpec 的双文件夹模型（specs vs changes）是什么意思？`} html={`<p>OpenSpec 区分两类内容：</p>
+<ul><li><strong><code>specs/</code></strong>：当前系统<strong>已稳定</strong>的事实规范。"系统现在长这样"；</li> <li><strong><code>changes/</code></strong>：每次<strong>变更</strong>的完整提案。"这次要把系统改成怎样"。</li></ul>
+<p>工作流：</p>
+<div class="language- extra-class"><pre class="language-text"><code>1. /opsx:propose → 在 changes/&lt;id&gt;/ 下生成 proposal + design + tasks
+2. 人工 review design.md
+3. 执行 tasks.md（交给 Superpowers / Claude Code）
+4. 完工后 /opsx:archive → 改动反向更新 specs/，change 归档到 changes/archive/
+</code></pre></div>
+<p>精髓：<strong>变更和事实分离</strong>。下一次会话来，看 <code>specs/</code> 知道系统现状，看 <code>changes/archive/</code> 知道历史决策。AI 不会重头讨论已经决定过的事。</p>`} />
+
+<QAHtmlItem question={`252. Superpowers 是什么？提供了哪些核心能力？`} html={`<p>Superpowers 是把"工程纪律"封装成 Skills 包。核心能力：</p>
+<table><thead><tr><th>Skill</th> <th>干什么</th></tr></thead> <tbody><tr><td><code>brainstorming</code></td> <td>创造性工作前先发散，避免 AI 跑偏</td></tr> <tr><td><code>writing-plans</code></td> <td>把目标拆成可执行的实施计划（带文件、命令、验证步骤）</td></tr> <tr><td><code>executing-plans</code></td> <td>严格按计划执行，跑完一步勾一步</td></tr> <tr><td><code>test-driven-development</code></td> <td>强制先写测试再写实现（"会删掉测试之前写的代码"——硬约束）</td></tr> <tr><td><code>systematic-debugging</code></td> <td>调 bug 的系统方法：复现、隔离、根因、修复、验证</td></tr> <tr><td><code>code-reviewer</code></td> <td>独立 review pass，不和实现混在一起</td></tr> <tr><td><code>verification-before-completion</code></td> <td>完成前必须跑过验证（测试 / 构建 / 真访问）</td></tr> <tr><td><code>worktrees</code></td> <td>git worktree 隔离开发，避免污染主分支</td></tr></tbody></table>
+<p>简单说：<strong>OpenSpec 管"要做什么"，Superpowers 管"怎么做得专业"</strong>。</p>`} />
+
+<QAHtmlItem question={`253. Claude Code + OpenSpec + Superpowers 三件套是过度工程吗？`} html={`<p>被面试官追问最容易翻车的题，记住一个观点：<strong>按项目规模分档</strong>，不是非黑即白。</p>
+<table><thead><tr><th>项目规模 / 类型</th> <th>推荐配置</th></tr></thead> <tbody><tr><td>30 分钟脚本 / 一次性任务</td> <td>只用 Claude Code，跑完丢</td></tr> <tr><td>&lt; 2h 探索性原型</td> <td>Claude Code + 必要时 <code>brainstorming</code></td></tr> <tr><td>2-8h 个人项目 / 小功能</td> <td>Claude Code + Superpowers（保质量）</td></tr> <tr><td>4-16h 团队项目 / 跨人协作</td> <td>全套（OpenSpec 留决策痕迹 + Superpowers 守纪律）</td></tr> <tr><td>长期维护 / ToB 交付</td> <td>全套 + 严格 archive 流程</td></tr></tbody></table>
+<p>不分场景上全套 = <strong>过度工程</strong>；不分场景拒绝全套 = <strong>野路子</strong>。务实地按场景挑。</p>
+<p>面试答法：</p>
+<blockquote><p>我会按"任务可逆性 + 跨人协作度 + 长期维护可能性"三个维度判断。一次性脚本直接 Claude Code，团队级功能必上 OpenSpec 留决策痕迹。</p></blockquote>`} />
+
+<QAHtmlItem question={`254. OpenSpec 的常见踩坑有哪些？`} html={`<p>实际用过的人会踩到这些：</p>
+<ol><li><strong>完成后忘了 archive</strong>：下一次会话以为是新需求，重复实现已有功能；</li> <li><strong>把 spec 写成伪代码</strong>：太具体反而限制 AI 实现空间，应该停留在"接口 / 数据流 / 决策"层；</li> <li><strong>跳过 brainstorming 直接 propose</strong>：技术选型偏差，AI 写到一半才发现方向不对；</li> <li><strong>proposal 和 design 混写</strong>：proposal 只讲"为什么"，design 才讲"怎么做"；</li> <li><strong>tasks 颗粒度太大</strong>：一项 <code>tasks</code> 跑两小时，AI 中途跑飞；</li> <li><strong>OpenSpec 和 Superpowers 没有串联</strong>：用了 propose 但执行时没走 TDD / review，等于半套。</li></ol>
+<p>避免方式：在 <code>CLAUDE.md</code> 明确写"propose 之后 tasks 必须走 Superpowers 的 TDD + verification + code-review 链路"。</p>`} />
+
+<QAHtmlItem question={`255. "你日常怎么用 AI 提效"被问到，怎么答得让人记住？`} html={`<p>把流程讲具体、有例子、有反思。参考模板：</p>
+<div class="language- extra-class"><pre class="language-text"><code>我们团队最近上 AI First 工作流，分三层：
+
+1. **决策层**：用 OpenSpec 先写 proposal + design 锁定方向。
+   解决的痛是：以前一句话需求让 AI 干，常常跑偏 + 决策没留痕。
+
+2. **执行层**：Claude Code 跑 Agent + Superpowers 守纪律。
+   关键约束：跑功能必须先写测试（TDD skill 强制），完成前必须 verify。
+   实战收益：上线后回归率明显下降，且改完代码自带 review pass。
+
+3. **沉淀层**：每个变更跑完 archive 到 changes/archive/，
+   下次有人接手能直接读历史决策，省掉一遍口头同步。
+
+踩过的坑：
+- 早期 OpenSpec 写得太详细，反而限制实现 → 后来 design 只写决策不写代码；
+- Superpowers 全开太重 → 现在按任务规模分档，一次性脚本不用全套。
+
+我自己最大的体感：AI 写代码的速度上限不是模型决定的，是"治理"决定的。
+有治理 = AI 是高级实习生；没治理 = AI 是熊孩子。
+</code></pre></div>
+<p>要点：<strong>有架构、有指标、有反思</strong>，是讲故事不是背概念。</p>
+<hr/>`} />

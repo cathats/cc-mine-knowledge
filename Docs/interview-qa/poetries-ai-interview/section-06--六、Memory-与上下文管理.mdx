@@ -2,12 +2,105 @@
 sidebar_position: 6
 ---
 
+import QAHtmlItem from "@site/src/components/QAHtmlItem";
+
 # # 六、Memory 与上下文管理
 
-- 原页面锚点：[# 六、Memory 与上下文管理](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#六、memory-与上下文管理)
+- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#六、memory-与上下文管理)
 
-<iframe
-  src="/poetries-ai-interview/AI面试题汇总.html#六、memory-与上下文管理"
-  style={{width: "100%", height: "80vh", border: "1px solid var(--ifm-color-emphasis-300)", borderRadius: "8px"}}
-  loading="lazy"
-/>
+<QAHtmlItem question={`120. 大模型本身是无状态的，为什么 ChatGPT 能记住上文？`} html={`<p>因为客户端 / 服务端帮它<strong>把历史 messages 拼回去了</strong>。每次请求都把整段对话历史塞进 prompt。</p>
+<p>模型本身永远在做"看这次输入 → 产生这次输出"。你看到的"记忆"全是<strong>外部状态管理</strong>。</p>
+<p>这也解释了为什么对话长了会慢、会贵：每轮都重新带全量历史。</p>`} />
+
+<QAHtmlItem question={`121. Memory 管理的核心矛盾是什么？`} html={`<p><strong>上下文窗口是有限的，但对话可能无限长</strong>。</p>
+<p>直接往 messages 里 push 早晚撞墙。所以要做<strong>有损压缩</strong>：</p>
+<ul><li>保留近期上下文（精确）；</li> <li>把远期上下文压缩成摘要（粗糙）；</li> <li>把"事实性内容"抽取出来存进结构化记忆 / 向量库（可检索）。</li></ul>`} />
+
+<QAHtmlItem question={`122. 短期记忆有哪几种实现？各自适合什么？`} html={`<ol><li><strong>全量 messages</strong>：最简单，对话一两轮够用；</li> <li><strong>滑动窗口</strong>：只保留最近 N 轮，超过的丢掉。简单粗暴；</li> <li><strong>滑动窗口 + 摘要</strong>：丢掉前先摘要，<strong>最常用</strong>；</li> <li><strong>Token 上限驱动</strong>：按 token 数（不是轮数）滚动；</li> <li><strong>关键消息标注</strong>：用户标记的"重要消息"始终保留，其他可丢。</li></ol>`} />
+
+<QAHtmlItem question={`123. 长期记忆怎么做？`} html={`<p>短期记忆只活在当前会话，长期记忆要<strong>跨会话</strong>。</p>
+<p>常见实现：</p>
+<ol><li><strong>结构化记忆</strong>：抽取出"用户偏好 / 历史事件 / 关键事实"存数据库（user_id → JSON）；</li> <li><strong>向量记忆</strong>：把每段重要对话 embedding 入向量库，下次提问时检索相关历史拼回 prompt；</li> <li><strong>图谱记忆</strong>：实体 + 关系存图数据库（Neo4j），适合"人物关系 / 项目关系"；</li> <li><strong>文件 / 文档</strong>：让 Agent 把"我学到的东西"写成 markdown 文件，下次开会话先 read。</li></ol>
+<p>Claude Code 的 memory 系统就是文件型 + 索引型混合。</p>`} />
+
+<QAHtmlItem question={`124. 滑动窗口的 N 怎么定？`} html={`<p>经验值：</p>
+<ul><li>简短闲聊：保留最近 8-12 轮；</li> <li>任务对话：保留最近 5-8 轮；</li> <li>长任务 / 编程：按 token，保留最近 10k-20k token。</li></ul>
+<p>要紧的不是 N，而是：</p>
+<ul><li>超过 N 时<strong>先摘要再丢</strong>，别直接扔；</li> <li><strong>关键消息</strong>（用户确认过的、Agent 写过文件的）独立保留。</li></ul>`} />
+
+<QAHtmlItem question={`125. 摘要压缩什么时机做？`} html={`<p>不要"对话长了再说"，否则用户会卡顿。常见两种时机：</p>
+<ol><li><strong>定时</strong>：每 5 轮 / 每 N 个 token 就摘要一次（异步）；</li> <li><strong>触发式</strong>：上下文剩余 token 不足 X 时强制摘要；</li> <li><strong>结束时</strong>：会话结束写一份"长期记忆"入库。</li></ol>
+<p>异步做摘要的好处是不阻塞主线程，用户感知不到。</p>`} />
+
+<QAHtmlItem question={`126. 摘要丢关键信息怎么办？`} html={`<p>工程上几条经验：</p>
+<ol><li><strong>抽取式摘要 + 关键事实清单</strong>双轨：摘要负责"语义连贯"，事实清单负责"不丢细节"；</li> <li><strong>强约束 prompt</strong>：明确告诉摘要 LLM "用户确认过的事情、订单号、金额、时间等必须保留"；</li> <li><strong>多级摘要</strong>：粗摘要 + 细摘要，按需取；</li> <li><strong>关键消息独立保留</strong>：不进摘要，永远在 messages 末尾。</li></ol>`} />
+
+<QAHtmlItem question={`127. 多用户怎么隔离记忆？`} html={`<p>最起码三层：</p>
+<ol><li><strong>会话级</strong>：session_id 隔离，每个会话独立 messages；</li> <li><strong>用户级</strong>：user_id 隔离，跨会话的长期记忆只能本人访问；</li> <li><strong>租户级（ToB）</strong>：tenant_id 隔离，企业之间数据完全不可见。</li></ol>
+<p>实现上要点：</p>
+<ul><li>向量库的查询必须<strong>带 metadata 过滤</strong> <code>user_id == 当前用户</code>；</li> <li><strong>缓存层别误共享</strong>：模型缓存 / 工具缓存如果按 prompt key 命中，可能跨用户串数据；</li> <li><strong>审计</strong>：所有记忆写入都记录 who + when + what。</li></ul>`} />
+
+<QAHtmlItem question={`128. 用户改主意了，记忆怎么处理？`} html={`<p>例子：用户先说"我要订北京的酒店"，几分钟后改成"算了改去上海"。</p>
+<p>工程上：</p>
+<ol><li><strong>覆盖式更新</strong>：用户最近一次表述优先，旧的标记为 outdated；</li> <li><strong>冲突检测</strong>：定期让 LLM 扫描记忆，发现冲突时提醒用户确认；</li> <li><strong>版本化</strong>：所有记忆带版本号 + 时间戳，回溯也方便；</li> <li><strong>不要悄悄"合并"</strong>：合并意图容易出错，明确"以新为准"。</li></ol>`} />
+
+<QAHtmlItem question={`129. Agent 的"工作记忆"（Working Memory）是什么？`} html={`<p>工作记忆 = <strong>当前任务正在用的临时变量</strong>，区别于：</p>
+<ul><li><strong>短期记忆</strong>（对话历史）；</li> <li><strong>长期记忆</strong>（用户偏好 / 历史事件）。</li></ul>
+<p>例子：Agent 正在处理一个退款流程，工作记忆里临时存"订单号 = A100、退款金额 = 200、客户已同意 = true"。任务结束就丢。</p>
+<p>实现上常见：</p>
+<ul><li>用一个 dict / Redis 存当前 task_id → state；</li> <li>把工作记忆<strong>显式注入</strong> prompt，让模型每步都能看到。</li></ul>`} />
+
+<QAHtmlItem question={`130. Memory 系统设计有哪几条铁律？`} html={`<p>工程上踩过坑总结：</p>
+<ol><li><strong>不要把所有 messages 都送给大模型</strong>：超贵且效果反而差；</li> <li><strong>可读性 &gt; 完整性</strong>：摘要是为了让模型理解，不是给人看的；</li> <li><strong>写入读取分离</strong>：写入异步、读取同步；</li> <li><strong>可观测</strong>：能查每段记忆是怎么产生的、用过几次；</li> <li><strong>可撤销</strong>：用户能"清除我的记忆"，符合 GDPR / 个保法。</li></ol>`} />
+
+<QAHtmlItem question={`131. 怎么让 Agent 记住"用户偏好"？`} html={`<p>最常见两种：</p>
+<ol><li><strong>显式存储</strong>：用户说"我以后回答都用中文"，Agent 把这条写入 user_preferences 表，每次 system prompt 拼回去；</li> <li><strong>隐式学习</strong>：定期扫描历史对话，让 LLM 抽取偏好（"用户喜欢简短回答"、"用户喜欢代码带注释"），更新偏好库。</li></ol>
+<p>不要靠"模型自己记住"，模型不持久化任何东西。</p>`} />
+
+<QAHtmlItem question={`132. 记忆系统的隐私和合规怎么做？`} html={`<p>涉及 PII（个人身份信息）的：</p>
+<ol><li><strong>采集前告知 + 同意</strong>；</li> <li><strong>敏感字段加密存储</strong>（身份证、手机号、邮箱）；</li> <li>**支持"删除我的所有数据"**接口；</li> <li><strong>导出我的数据</strong>接口；</li> <li><strong>审计日志</strong>：谁访问了我的记忆；</li> <li><strong>跨境传输合规</strong>：用海外模型时要考虑数据出境问题。</li></ol>`} />
+
+<QAHtmlItem question={`133. Memory 演进路线（从 demo 到生产）？`} html={`<p>四步：</p>
+<ol><li><strong>全量 messages</strong>：能跑就行；</li> <li><strong>滑动窗口 + 异步摘要</strong>：能跑长任务；</li> <li><strong>向量长期记忆</strong>：能跨会话；</li> <li><strong>图谱 / 结构化记忆 + 多层级</strong>：企业级 Agent。</li></ol>
+<p>不要一上来上第 4 步，对中小项目就是过度设计。</p>`} />
+
+<QAHtmlItem question={`134. Claude Code 的 memory 系统怎么实现的？`} html={`<p>Claude Code 的 memory 是「<strong>文件型 + 索引型混合</strong>」：</p>
+<ul><li>每个会话 / 项目可以有 <code>memory/</code> 目录；</li> <li>子目录按类型分：<code>user.md</code>（用户偏好）、<code>feedback.md</code>（修改习惯）、<code>project.md</code>（项目状态）、<code>reference.md</code>（外部资源）；</li> <li>一份 <code>MEMORY.md</code> 索引每个 entry 的 title + 1-2 句话；</li> <li>模型按需 <code>Read</code> 索引或具体文件。</li></ul>
+<p>设计精髓：</p>
+<ul><li><strong>可读性强</strong>（人能看 / 改 / 删）；</li> <li><strong>可版本化</strong>（git 跟踪）；</li> <li><strong>可选读</strong>（不像全量 messages 那样必须带）；</li> <li><strong>支持显式编辑</strong>（用户能精准纠错）。</li></ul>
+<p>这种"显式可控的 memory"是 LLM 时代 memory 系统的主流思路。</p>`} />
+
+<QAHtmlItem question={`135. Episodic Memory vs Semantic Memory 区别？`} html={`<p>借自认知科学：</p>
+<ul><li><strong>Episodic（情景）记忆</strong>：记得"具体发生过什么事"。例子：用户上次说想退款；</li> <li><strong>Semantic（语义）记忆</strong>：抽象出来的知识 / 偏好。例子：用户喜欢简短回答。</li></ul>
+<p>Agent 系统里这两种都要：</p>
+<ul><li>Episodic 适合<strong>当前任务推理</strong>（"我和你之前说过 X"）；</li> <li>Semantic 适合<strong>个性化定制</strong>（用户偏好、风格、规则）。</li></ul>
+<p>实现上：Episodic 用对话历史 + 向量库，Semantic 用结构化 key-value。</p>`} />
+
+<QAHtmlItem question={`136. 多 Agent 共享 memory 怎么设计？`} html={`<p>多个子 Agent 协作时，<strong>信息怎么传递</strong>：</p>
+<ol><li><strong>共享 state</strong>（LangGraph 做法）：所有 Agent 都能读写一个 state 字典；</li> <li><strong>Message Passing</strong>：子 Agent 之间发消息，主 Agent 协调；</li> <li><strong>共享存储 + 锁</strong>：Redis / DB 加分布式锁；</li> <li><strong>写一份事件流（Event Log）</strong>：所有 Agent 看同一份事件流，各取所需。</li></ol>
+<p>最佳实践：</p>
+<ul><li>别让所有 Agent 都看全量 memory，<strong>按角色过滤</strong>；</li> <li>写入要有"是谁写的"标签，方便追责；</li> <li>多 Agent 并发写要序列化或加锁。</li></ul>`} />
+
+<QAHtmlItem question={`137. Memory 的访问控制（哪些 Agent 能读 / 能写）？`} html={`<p>不同 Agent 信任级别不一样。常见做法：</p>
+<ul><li><strong>角色 = 权限</strong>：QA Agent 只读，Edit Agent 可写，Auditor Agent 全只读；</li> <li><strong>白名单</strong>：每个工具 / memory 字段都列出允许的 Agent；</li> <li><strong>审计</strong>：所有写入记录 actor + reason；</li> <li><strong>回滚</strong>：保留写入历史，能 undo。</li></ul>
+<p>ToB 场景这是合规硬要求。</p>`} />
+
+<QAHtmlItem question={`138. 用户偏好 Memory 怎么实战？`} html={`<p>最常用方案：</p>
+<div class="language-ts extra-class"><pre class="language-ts"><code><span class="token comment">// 结构化偏好表</span>
+<span class="token keyword">interface</span> <span class="token class-name">UserPrefs</span> <span class="token punctuation">{</span>
+  user_id<span class="token operator">:</span> <span class="token builtin">string</span>
+  language<span class="token operator">:</span> <span class="token string">'zh'</span> <span class="token operator">|</span> <span class="token string">'en'</span> <span class="token operator">|</span> <span class="token string">'auto'</span>
+  response_style<span class="token operator">:</span> <span class="token string">'concise'</span> <span class="token operator">|</span> <span class="token string">'detailed'</span>
+  preferred_models<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">[</span><span class="token punctuation">]</span>
+  custom_instructions<span class="token operator">:</span> <span class="token builtin">string</span>  <span class="token comment">// 用户自己写的"对我说话要..."</span>
+  topics_of_interest<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">[</span><span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre></div>
+<p>注入方式：</p>
+<ul><li>每次 system prompt 拼一段 <code>## 用户偏好\\n{prefs}</code>；</li> <li>模型回答前能感知；</li> <li>用户能在 UI 上<strong>显式编辑</strong>这份偏好。</li></ul>
+<p>不要让模型"自己猜偏好"，<strong>给用户编辑入口</strong>才合理。</p>`} />
+
+<QAHtmlItem question={`139. 怎么判断一段记忆该不该写？`} html={`<p>不是所有对话都值得长期记忆。判定规则：</p>
+<ul><li><strong>用户明确说"记住这个"</strong>：必写；</li> <li><strong>用户偏好性表达</strong>（"我以后都用中文回答"）：必写；</li> <li><strong>关键事实</strong>（订单号、地址、ID）：必写；</li> <li><strong>闲聊 / 重复确认</strong>：不写；</li> <li><strong>会过期的状态</strong>（"我现在很忙"）：不写或加 TTL。</li></ul>
+<p>简单粗暴的"全写"会把记忆库污染。让一个轻量 LLM 做记忆筛选是常见做法。</p>
+<hr/>`} />

@@ -2,12 +2,136 @@
 sidebar_position: 4
 ---
 
+import QAHtmlItem from "@site/src/components/QAHtmlItem";
+
 # # 四、RAG 检索增强生成
 
-- 原页面锚点：[# 四、RAG 检索增强生成](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#四、rag-检索增强生成)
+- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#四、rag-检索增强生成)
 
-<iframe
-  src="/poetries-ai-interview/AI面试题汇总.html#四、rag-检索增强生成"
-  style={{width: "100%", height: "80vh", border: "1px solid var(--ifm-color-emphasis-300)", borderRadius: "8px"}}
-  loading="lazy"
-/>
+<QAHtmlItem question={`68. 什么是 RAG？为什么要发明它？`} html={`<p>RAG = <strong>Retrieval-Augmented Generation</strong>：用户提问 → 先去知识库<strong>检索</strong>相关片段 → 把片段塞进 prompt <strong>增强</strong>上下文 → 模型基于这些<strong>生成</strong>回答。</p>
+<p>为什么需要它：</p>
+<ul><li>模型<strong>不知道</strong>你公司的内部文档；</li> <li>模型<strong>有知识截止日期</strong>，最新政策 / 数据它不知道；</li> <li>模型<strong>会幻觉</strong>，没有依据时会瞎编；</li> <li><strong>微调成本高</strong>且对频繁更新的知识不友好。</li></ul>
+<p>RAG 用最便宜的方式，让模型"外挂"了知识库。</p>`} />
+
+<QAHtmlItem question={`69. RAG 标准流程拆解？`} html={`<p><strong>离线</strong>（建索引）：</p>
+<ol><li><strong>加载</strong>（Loader）：读 PDF / Word / Markdown / Notion / 数据库；</li> <li><strong>切片</strong>（Splitter）：按 token / 段落 / 语义切成小块；</li> <li><strong>Embedding</strong>：每块算向量；</li> <li><strong>入库</strong>：向量 + 元数据进向量库。</li></ol>
+<p><strong>在线</strong>（查询）：</p>
+<ol><li><strong>Query 预处理</strong>：改写、拆解、补全；</li> <li><strong>检索</strong>：向量召回 + 关键词召回（Hybrid Search）；</li> <li><strong>重排</strong>（Rerank）：用 Cross-Encoder 重新打分排序；</li> <li><strong>拼接</strong>：把 top-N 片段填入 prompt；</li> <li><strong>生成</strong>：LLM 输出回答（带引用）。</li></ol>
+<p>每一步都有调优空间，<strong>90% 的 RAG 问题出在切片和检索</strong>。</p>`} />
+
+<QAHtmlItem question={`70. 文档怎么切片（Chunking）？什么大小合适？`} html={`<p>切片是 RAG 里最容易出问题的环节。常见策略：</p>
+<table><thead><tr><th>策略</th> <th>说明</th> <th>适合</th></tr></thead> <tbody><tr><td>固定 token</td> <td>比如每 500 token 切一块</td> <td>简单粗暴，通用</td></tr> <tr><td>按段落 / 标题</td> <td>按 <code>\\n\\n</code> 或 <code>#</code> 切</td> <td>Markdown / 结构化文档</td></tr> <tr><td>递归切分</td> <td>大→小，多级 fallback</td> <td>LangChain 默认</td></tr> <tr><td>语义切分</td> <td>按句子向量相似度切</td> <td>长文、效果好但慢</td></tr> <tr><td>Late Chunking</td> <td>先 embedding 整段再切</td> <td>新方法，召回更好</td></tr></tbody></table>
+<p>切片<strong>大小</strong>：</p>
+<ul><li>太小（&lt; 100 token）：每块语义不完整，检索召回散；</li> <li>太大（&gt; 1000 token）：召回准了但塞进 prompt 浪费 token；</li> <li>常用：<strong>300 - 600 token + 50 - 100 overlap</strong>。</li></ul>
+<p>实战建议：<strong>先用默认 500/50 跑通，根据召回质量再调</strong>。</p>`} />
+
+<QAHtmlItem question={`71. Embedding 模型怎么选？`} html={`<p>按场景：</p>
+<ul><li><strong>中文场景</strong>：bge-m3、Qwen-embedding、jina-zh；</li> <li><strong>英文 / 多语言</strong>：text-embedding-3-large、bge-large-en；</li> <li><strong>私有化</strong>：bge / m3e（开源、自己部署）；</li> <li><strong>资源紧 / 维度敏感</strong>：bge-small（384 维）。</li></ul>
+<p>几个易错点：</p>
+<ul><li>一份索引必须<strong>绑定一个 embedding 模型</strong>，换模型必须全量重建；</li> <li>维度越高存储和检索越贵，<strong>1024 / 1536 是甜点</strong>；</li> <li><strong>query 和 document 用同一个 embedding 模型</strong>，且 query 端经常需要前缀（<code>Query: ...</code>）。</li></ul>`} />
+
+<QAHtmlItem question={`72. 向量数据库怎么选？`} html={`<table><thead><tr><th>选型</th> <th>推荐</th></tr></thead> <tbody><tr><td>已有 PostgreSQL，量不大</td> <td><strong>pgvector</strong></td></tr> <tr><td>中量、需要快速上手</td> <td><strong>Chroma</strong>（本地 / 内存）</td></tr> <tr><td>中大型 + 多语言 + 高性能</td> <td><strong>Qdrant</strong>、<strong>Weaviate</strong></td></tr> <tr><td>大型 + 企业级 / 国内开源</td> <td><strong>Milvus</strong>（生态最全）</td></tr> <tr><td>Serverless 托管</td> <td>Pinecone、Vercel Vector</td></tr> <tr><td>不想引入新组件</td> <td>Elasticsearch dense_vector</td></tr></tbody></table>
+<p>记住：<strong>别一上来就上 Milvus</strong>，量小时 pgvector 完全够用，运维成本低一个数量级。</p>`} />
+
+<QAHtmlItem question={`73. 检索召回准不准？怎么改进？`} html={`<p>如果用户问 X 但召回的都是 Y，检查顺序：</p>
+<ol><li><strong>切片是否合理</strong>（最常见根因）：太碎 / 太大都会出问题；</li> <li><strong>Embedding 模型是否适合中文 / 业务领域</strong>；</li> <li><strong>Query 改写</strong>：把用户口语化的 query 改成更标准的检索 query；</li> <li><strong>加入 BM25 / 关键词召回做 Hybrid</strong>：向量召回擅长语义、BM25 擅长精确词，结合更稳；</li> <li><strong>Reranker 重排</strong>：召回 50 条 → 重排 top 5 → 塞 prompt；</li> <li><strong>元数据过滤</strong>：按部门 / 时间 / 文档类型先过滤再向量检索；</li> <li><strong>检查文档本身</strong>：很多时候是文档质量太差，不是 RAG 不行。</li></ol>`} />
+
+<QAHtmlItem question={`74. 什么是 Hybrid Search（混合检索）？`} html={`<p>向量检索 + 关键词检索（BM25 / Elasticsearch）<strong>两路同时召回，再合并打分</strong>。</p>
+<p>为什么有效？</p>
+<ul><li>向量召回擅长<strong>语义相似但用词不同</strong>（"忘记密码" ↔ "登录不上"）；</li> <li>BM25 擅长<strong>精确匹配</strong>（产品编号、报错代码、专有名词）；</li> <li>合并起来覆盖更全。</li></ul>
+<p>合并算法常用 RRF（Reciprocal Rank Fusion），简单稳定。</p>`} />
+
+<QAHtmlItem question={`75. Reranker 是什么？为什么向量召回还不够？`} html={`<p>向量召回用的是 <strong>bi-encoder</strong>：query 和 doc 各自编码后比相似度，速度快但精度有限。</p>
+<p>Reranker 是 <strong>cross-encoder</strong>：把 query 和 doc 拼起来一起进模型，输出一个相关性分数。<strong>精度高，但每对都要算一次，慢</strong>。</p>
+<p>工程标准做法：</p>
+<ol><li>用向量召回<strong>召出 30-100 条候选</strong>；</li> <li>用 reranker <strong>重排选 top 5-10</strong>；</li> <li>把 top 拼进 prompt。</li></ol>
+<p>常用模型：bge-reranker、Cohere Rerank、Jina Reranker。</p>`} />
+
+<QAHtmlItem question={`76. 什么是 GraphRAG / Agentic RAG？`} html={`<p>进阶 RAG 思路：</p>
+<ul><li><strong>GraphRAG</strong>：把文档抽成「实体 + 关系」的知识图谱，回答时不仅检索片段，还检索实体关系。适合"涉及人物 / 公司 / 关系网络"的复杂问答。微软研究院推得多。</li> <li><strong>Agentic RAG</strong>：用 Agent 来跑 RAG，模型自己决定：要不要查、查几次、查完够不够、要不要再查。适合<strong>多跳推理</strong>（A → 找 B → 再查 C）。LangGraph 的图编排能直接干这事。</li></ul>
+<p>普通 RAG 一问一答，Agentic RAG <strong>可以反复检索</strong>。</p>`} />
+
+<QAHtmlItem question={`77. RAG 怎么评估效果？`} html={`<p>最少四个指标：</p>
+<ol><li><strong>召回率（Recall）</strong>：理论上应该被检索到的片段，实际有多少被检索到；</li> <li><strong>精确率（Precision）</strong>：检索到的片段里有多少真的相关；</li> <li><strong>回答正确率</strong>：用 LLM-as-Judge 判断回答是否准确（需要 ground-truth 集合）；</li> <li><strong>引用准确率</strong>：回答里引的片段是不是真的支持这个回答。</li></ol>
+<p>工具：<strong>RAGAS</strong>（最常见）、TruLens、DeepEval。</p>`} />
+
+<QAHtmlItem question={`78. RAG 中怎么减少幻觉？`} html={`<p>不是 RAG 自动就不幻觉，工程上要做：</p>
+<ol><li><strong>强制要求引用</strong>：<code>回答中每个事实必须用 [片段编号] 注明出处</code>；</li> <li><strong>拒答提示</strong>：<code>如果检索片段中没有相关内容，必须回答"不知道"</code>；</li> <li><strong>后置校验</strong>：用第二个 LLM 检查引用片段是否真的支持回答；</li> <li><strong>检索阈值</strong>：相似度低于 X 的片段不参与生成；</li> <li><strong>Self-RAG / 反思 RAG</strong>：模型先判断需不需要检索、再判断结果够不够。</li></ol>`} />
+
+<QAHtmlItem question={`79. 长文档怎么处理？`} html={`<p>长文档（论文、合同、手册）的几个套路：</p>
+<ol><li><strong>层次摘要</strong>：每章 / 每节先做摘要存起来，问答时先用摘要定位章节，再下钻到具体片段；</li> <li><strong>结构化目录</strong>：把目录抽出来当索引，用户问题先定位章节再精检索；</li> <li><strong>多粒度索引</strong>：句子级 + 段落级 + 章节级都建索引，按问题类型选；</li> <li><strong>元数据驱动</strong>：用文档类型 / 章节 / 日期等元数据缩小检索范围；</li> <li><strong>超长上下文模型补刀</strong>：定位到某一章后，把整章塞进 200k 上下文一次性问。</li></ol>`} />
+
+<QAHtmlItem question={`80. RAG 的 prompt 模板长什么样？`} html={`<div class="language- extra-class"><pre class="language-text"><code>你是一名 [角色]，根据以下检索到的资料回答用户问题。
+
+# 规则
+1. 仅基于下面的资料回答，资料里没有的内容请回答"我不确定"。
+2. 每个事实都要标注引用编号，如 [1]、[2]。
+3. 如果资料之间有冲突，请同时列出并说明。
+
+# 资料
+[1] {{chunk_1}}
+[2] {{chunk_2}}
+[3] {{chunk_3}}
+
+# 用户问题
+{{question}}
+
+# 输出格式
+回答：...
+引用：[1], [2]
+</code></pre></div>
+<p>记住三点：<strong>强约束、强引用、强拒答</strong>。</p>`} />
+
+<QAHtmlItem question={`81. 长上下文模型出来后 RAG 还需要吗？`} html={`<p>需要，原因：</p>
+<ul><li><strong>成本</strong>：1M 上下文一次几美元，RAG 一次几分；</li> <li><strong>延迟</strong>：长上下文 TTFT 慢得多；</li> <li><strong>效果</strong>：Lost in the Middle，关键信息不一定能用上；</li> <li><strong>可解释性</strong>：RAG 能告诉用户"答案出自哪个文档"，长上下文做不到；</li> <li><strong>数据范围</strong>：企业知识动辄 GB / TB 级，根本塞不进任何上下文。</li></ul>
+<p>长上下文是 RAG 的<strong>互补</strong>，不是替代。</p>`} />
+
+<QAHtmlItem question={`82. RAG 的离线评估和在线评估区别？`} html={`<ul><li><strong>离线</strong>：准备一组标注好的 query + 期望答案，每次迭代跑全量，看指标趋势。<strong>便宜、可重复</strong>；</li> <li><strong>在线</strong>：用真实用户流量看转化率、点踩率、停留时间、问完是否追问。<strong>贵但真实</strong>。</li></ul>
+<p>工程上的标准做法：<strong>离线主导迭代 + 在线小流量验证 + 用户反馈回灌</strong>。</p>`} />
+
+<QAHtmlItem question={`83. Contextual Retrieval 是什么？`} html={`<p>Anthropic 2024 年推的检索增强技巧。<strong>核心</strong>：切片之前，先用 LLM 给每个 chunk 加一段「上下文说明」，把它在原文里的位置 / 关系交代清楚。</p>
+<p>例子：</p>
+<ul><li>原 chunk：<code>"上一财年净利润同比下降 3.4%。"</code></li> <li>加上下文：<code>"以下内容来自 ABC 公司 2025 年 Q4 财报中关于经营业绩的章节：上一财年净利润同比下降 3.4%。"</code></li></ul>
+<p>效果：</p>
+<ul><li>检索召回率显著上升（论文 +35%-50%）；</li> <li>重排 + 上下文检索叠加效果更好；</li> <li>代价是预处理多调一遍 LLM，<strong>靠 Prompt Caching 把成本压住</strong>。</li></ul>
+<p>适合<strong>碎片化文档 / 简短切片</strong>的场景。</p>`} />
+
+<QAHtmlItem question={`84. 父子切片（Parent-Child Chunking）是什么？`} html={`<p>矛盾：切片太小召回不准、切片太大占 token。</p>
+<p>父子切片的做法：</p>
+<ul><li><strong>小 chunk 用于检索</strong>（200 token，语义精确）；</li> <li><strong>大 chunk 用于喂模型</strong>（800 token，上下文完整）；</li> <li>每个 small chunk 有 parent_id 指向 large chunk。</li></ul>
+<p>流程：用 query 召回 small chunks → 找它们的 parent → 用 parent 内容喂模型。</p>
+<p>效果：召回更准、上下文更全，<strong>生产 RAG 常用套路</strong>。</p>`} />
+
+<QAHtmlItem question={`85. 多向量检索（Multi-Vector Retrieval）是什么？`} html={`<p>一个 chunk <strong>不止存一个向量</strong>，而是存多个：</p>
+<ul><li>原文向量；</li> <li>用 LLM 抽取的"假设问题" 向量；</li> <li>摘要向量；</li> <li>关键词向量。</li></ul>
+<p>检索时这些向量都参与召回，最后合并去重。</p>
+<p>好处：</p>
+<ul><li>用户问题和文档表述不一致时，"假设问题"能命中；</li> <li>长文档对应的多个角度都能召回。</li></ul>
+<p>代价是存储多倍 + 入库慢，<strong>适合关键文档</strong>。</p>`} />
+
+<QAHtmlItem question={`86. ColBERT 和 Dense Retrieval 区别？`} html={`<ul><li><strong>Dense Retrieval</strong>（普通向量检索）：query 和 doc 各压成 1 个向量，比相似度；</li> <li><strong>ColBERT</strong>：query 和 doc 都保留<strong>每个 token 的向量</strong>，检索时 token-级别匹配（MaxSim）。</li></ul>
+<p>ColBERT 优势：</p>
+<ul><li>召回精度更高（token 级匹配能抓细节）；</li> <li>比 cross-encoder 重排快很多。</li></ul>
+<p>劣势：</p>
+<ul><li>存储成本几十倍上升；</li> <li>索引复杂；</li> <li>工程实现少（生产用得不多）。</li></ul>
+<p>记一句话：<strong>精度 &gt; 速度 → cross-encoder rerank；速度 + 中精度 → ColBERT；速度 + 低成本 → Dense</strong>。</p>`} />
+
+<QAHtmlItem question={`87. RAG 的"幻觉引用"怎么处理？`} html={`<p>模型答出来的内容里<strong>引用了根本不在召回片段里</strong>的事。两步处理：</p>
+<ol><li><strong>结构化输出强约束引用</strong>：每个事实必须带 <code>[N]</code> 编号；</li> <li><strong>后置校验</strong>：用代码 / 第二个 LLM 检查引用编号对应的 chunk 是否真的支持这条事实。</li></ol>
+<p>校验失败两种处理：</p>
+<ul><li>软：标红显示"此条未找到出处"；</li> <li>硬：直接删掉无引用的句子。</li></ul>
+<p>不要相信"我已经在 prompt 里要求带引用"，<strong>模型还是会编</strong>。</p>`} />
+
+<QAHtmlItem question={`88. RAG 的索引更新策略？`} html={`<p>文档会改、会删、会加。常见策略：</p>
+<table><thead><tr><th>策略</th> <th>说明</th> <th>适合</th></tr></thead> <tbody><tr><td>全量重建</td> <td>定期（每天 / 每周）完全重新算</td> <td>文档变化不频繁</td></tr> <tr><td>增量更新</td> <td>监听 webhook，文档改了就单独更新对应 chunk</td> <td>文档变化快</td></tr> <tr><td>软删除</td> <td>标记 deleted，检索过滤</td> <td>频繁删除</td></tr> <tr><td>版本化</td> <td>每篇文档保留多个版本，按时间查</td> <td>法规 / 历史溯源</td></tr></tbody></table>
+<p>工程上要点：</p>
+<ul><li><strong>chunk 必须有 doc_id 元数据</strong>，便于按文档操作；</li> <li>删除 / 更新走异步队列，<strong>不阻塞业务写</strong>；</li> <li>检索时按 <code>valid=true</code> 过滤；</li> <li>大量更新后跑回归测试，<strong>召回质量可能波动</strong>。</li></ul>`} />
+
+<QAHtmlItem question={`89. RAG 的"冷启动"问题怎么解？`} html={`<p>新业务、文档少、用户问的常常超出知识库范围，回答质量差。</p>
+<p>解法：</p>
+<ol><li><strong>承认局限</strong>：拒答 + 转人工，比瞎答好；</li> <li><strong>FAQ 补齐</strong>：让运营手写常见问题 + 答案，直接进知识库；</li> <li><strong>从客服日志 / 历史工单蒸馏</strong>：把已答问答对入库；</li> <li><strong>联网检索兜底</strong>：库里没有的允许走搜索 API；</li> <li><strong>缩小用户期望</strong>：UI 文案明确"我能回答 XX 类问题"。</li></ol>`} />
+
+<QAHtmlItem question={`90. RAG 的"重排"什么时候必须做？`} html={`<p>下面情况几乎必加 Reranker：</p>
+<ul><li>召回 top-k 中相关度参差不齐；</li> <li>业务专有名词多（产品编号、报错码）；</li> <li>多语言混合；</li> <li>文档质量不均；</li> <li>用户问题口语化严重。</li></ul>
+<p>跳过 Reranker 的成本：召回的 chunk 顺序差 → LLM 看 prompt 时把"无关 chunk"也当成事实 → 幻觉。<strong>多花 200ms 一次重排，省一堆幻觉</strong>。</p>
+<hr/>`} />

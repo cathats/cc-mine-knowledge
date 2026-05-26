@@ -2,12 +2,172 @@
 sidebar_position: 2
 ---
 
+import QAHtmlItem from "@site/src/components/QAHtmlItem";
+
 # # 二、Prompt 工程
 
-- 原页面锚点：[# 二、Prompt 工程](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#二、prompt-工程)
+- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#二、prompt-工程)
 
-<iframe
-  src="/poetries-ai-interview/AI面试题汇总.html#二、prompt-工程"
-  style={{width: "100%", height: "80vh", border: "1px solid var(--ifm-color-emphasis-300)", borderRadius: "8px"}}
-  loading="lazy"
-/>
+<QAHtmlItem question={`21. Prompt 工程到底是什么？为什么花时间在它上面值得？`} html={`<p>朴素一句话：<strong>用结构化、可复用的输入文本，引导模型给出可控、稳定的输出</strong>。</p>
+<p>为什么值得：</p>
+<ul><li>同一个模型，一个写糟的 prompt 和一个写好的 prompt，效果可能差 5 倍以上；</li> <li>Prompt 是<strong>最便宜的优化手段</strong>，比微调快 1000 倍，比换模型省几十倍钱；</li> <li>Prompt 出问题最常见的不是"模型不行"，而是"指令没写清"。</li></ul>`} />
+
+<QAHtmlItem question={`22. Zero-shot / One-shot / Few-shot 的区别和适用边界？`} html={`<ul><li><strong>Zero-shot</strong>：直接问，不给例子。模型已经擅长的任务（翻译、改写、总结）够用；</li> <li><strong>One-shot</strong>：给一个范例。让模型知道"输出长这样"；</li> <li><strong>Few-shot</strong>：给 2-5 个范例。对<strong>输出格式特殊 / 业务规则复杂</strong>的场景特别有效。</li></ul>
+<p>经验值：</p>
+<ul><li>简单任务 0-1 例；</li> <li>复杂格式 3-5 例就够，超过 5 个收益快速衰减还涨 token；</li> <li><strong>例子要覆盖边界</strong>，比如带空值、异常输入的例子各放一个；</li> <li>例子顺序有影响，<strong>和真实输入相近的放最后</strong>。</li></ul>`} />
+
+<QAHtmlItem question={`23. CoT（Chain of Thought）是什么？什么时候要 / 不要？`} html={`<p>让模型<strong>先想再答</strong>，把推理过程显式写出来，再给结论。</p>
+<p>最简单的触发：在 prompt 末尾加一句 <code>Let's think step by step.</code>，或者用 Claude 风格的 <code>&lt;thinking&gt;...&lt;/thinking&gt;</code>。</p>
+<p><strong>适合</strong>：数学、多步推理、规则复杂的判定题（合规审查、合同抽取）。</p>
+<p><strong>不适合</strong>：</p>
+<ul><li>简单任务（翻译、改写、抽取一个字段），CoT 反而拖慢且无收益；</li> <li><strong>追求最低延迟</strong>的场景，CoT 让输出变长 5-10 倍；</li> <li>现在很多新模型（Claude / o1 / DeepSeek-R1）内部已经做了<strong>隐式推理</strong>，再手动加 CoT 收益不大反而干扰。</li></ul>`} />
+
+<QAHtmlItem question={`24. ReAct 是什么？和 CoT 的区别？`} html={`<p>ReAct = Reason + Act：让模型按 <strong>思考 → 行动 → 观察 → 再思考</strong> 的循环走，是 <strong>Agent 的基础范式</strong>。</p>
+<p>CoT 只有「想」，ReAct 多了「想完之后调工具，把工具结果带回来继续想」这一步。</p>
+<p>简化的输出格式：</p>
+<div class="language- extra-class"><pre class="language-text"><code>Thought: 我需要查今天天气
+Action: get_weather
+Action Input: {"city": "北京"}
+Observation: 26°C 晴
+Thought: 已经拿到，可以回答了
+Final Answer: 北京今天 26 度，晴
+</code></pre></div>
+<p>实际工程里很少手写 ReAct，<strong>LangChain / Agent SDK / 大模型自带的 Tool Calling 就是 ReAct 的工程化封装</strong>。</p>`} />
+
+<QAHtmlItem question={`25. 怎么让模型严格输出 JSON？`} html={`<p>按可靠性从低到高：</p>
+<ol><li><strong>Prompt 描述格式</strong>：最弱，模型经常多说一句话或把 JSON 包在 Markdown 里；</li> <li><strong>JSON Mode</strong>：大多数 SDK 支持 <code>response_format: { type: 'json_object' }</code>，强制输出合法 JSON；</li> <li><strong>Function Calling / Tool</strong>：把你要的字段定义成函数参数 schema，模型必须按 schema 填。<strong>最稳，强烈推荐</strong>；</li> <li><strong>Structured Output</strong>（OpenAI / Anthropic 都有）：在 Tool Calling 基础上加 JSON Schema 强约束；</li> <li><strong>约束解码</strong>：在推理引擎层面卡 token，只允许输出符合语法的 token，私有部署常用（outlines、jsonformer）。</li></ol>
+<p>兜底策略：解析失败时，把错误信息 + 原始输出一起塞回模型让它修，或者用 <code>jsonrepair</code> / <code>partial-json</code> 这种容错解析库。</p>`} />
+
+<QAHtmlItem question={`26. Prompt 写长了为什么效果反而变差？`} html={`<p>三个根因，按重要性排序：</p>
+<ol><li><strong>Lost in the Middle</strong>：长上下文中间段的信息被忽略；</li> <li><strong>指令冲突</strong>：写多了容易自相矛盾，比如前面说"简短"后面又写"详细"；</li> <li><strong>稀释效应</strong>：核心指令在大量背景文字里被淹没。</li></ol>
+<p>优化：</p>
+<ul><li>关键指令放<strong>开头和结尾</strong>两次（甚至复述）；</li> <li>用 XML 标签或分隔符<strong>显式分块</strong>：<code>&lt;context&gt;...&lt;/context&gt;</code>、<code>&lt;task&gt;...&lt;/task&gt;</code>、<code>&lt;output&gt;...&lt;/output&gt;</code>；</li> <li>把静态背景知识挪到 <strong>RAG</strong>，prompt 里只留当前任务。</li></ul>`} />
+
+<QAHtmlItem question={`27. 怎么写一个高质量的 Prompt？给你一个能直接套的骨架。`} html={`<div class="language- extra-class"><pre class="language-text"><code># 角色
+你是一名 [具体角色，越具体越好]。
+
+# 任务
+[要做什么，一句话讲清楚]
+
+# 输入
+{{user_input}}
+
+# 步骤（可选，复杂任务必加）
+1. ...
+2. ...
+3. ...
+
+# 输出格式
+[JSON schema / Markdown 模板 / 自由文本]
+
+# 约束
+- 必须 ...
+- 不能 ...
+- 当 [边界情况] 时，[怎么做]
+
+# 示例（可选，复杂任务必加）
+输入：...
+输出：...
+</code></pre></div>
+<p>把这个骨架记下来，95% 业务 prompt 都能套出来。</p>`} />
+
+<QAHtmlItem question={`28. 为什么"不要做某件事"经常没效果？`} html={`<p>这是模型的特性：它对<strong>正向指令</strong>敏感得多。否定指令需要"想完该做什么，再否定它"，路径更长。</p>
+<p>错误写法：<code>不要使用复杂的词。</code></p>
+<p>更好的写法：<code>使用日常生活中的简单词，每句话不超过 15 个字，避免行业术语。</code></p>
+<p>经验上能用「做什么」就别写「不要做什么」。</p>`} />
+
+<QAHtmlItem question={`29. Prompt 注入（Prompt Injection）和越狱（Jailbreak）的区别？`} html={`<ul><li><strong>Prompt Injection</strong>：用户输入里夹带恶意指令，<strong>让模型偏离 system prompt</strong>。攻击的是"信任边界"；</li> <li><strong>Jailbreak</strong>：突破模型自身的对齐和安全限制，<strong>让它输出本不该输出的内容</strong>。攻击的是"对齐策略"。</li></ul>
+<p>两者经常组合：先注入再越狱。</p>
+<p>前端要做的防御：</p>
+<ol><li><strong>结构化分隔</strong>：用 XML / 特殊 token 把用户输入和系统指令分开；</li> <li><strong>输入审核</strong>：先用一个轻量模型判断输入是否包含可疑指令；</li> <li><strong>输出审核</strong>：敏感关键词过滤、PII 检测；</li> <li><strong>限制权限</strong>：哪怕被越狱，工具调用、数据访问也要有独立的鉴权层；</li> <li><strong>不要把密钥 / 内部链接放进 prompt</strong>。</li></ol>`} />
+
+<QAHtmlItem question={`30. 模型不听话怎么排查？`} html={`<p>按顺序排查，命中一个就停：</p>
+<ol><li><strong>指令是否冲突</strong>？system 和 user 互相矛盾时模型会随机挑一个听；</li> <li><strong>few-shot 例子是不是带错</strong>？例子比指令权重高，例子错了就跟着错；</li> <li><strong>格式约束是否过严</strong>？比如要求 JSON 还要求 Markdown，模型会放弃；</li> <li><strong>temperature 是否太高</strong>？业务任务 0-0.3 就好；</li> <li><strong>能不能换模型试试</strong>？有些任务 Claude 强、有些 GPT 强、有些 Qwen 反而稳；</li> <li><strong>是不是 prompt 太长了</strong>？关键指令被埋在中间。</li></ol>`} />
+
+<QAHtmlItem question={`31. 怎么调试 / 评估一个 Prompt？`} html={`<p>不要靠"我自己点几下感觉还行"。最少要做：</p>
+<ol><li><strong>写一组测试用例</strong>（10-30 条），每条包含输入、期望输出、判定方式；</li> <li>用脚本跑全量，统计<strong>通过率、token 消耗、平均耗时</strong>；</li> <li>改完 prompt 重新跑，对比指标，<strong>优化前后看趋势</strong>；</li> <li><strong>可视化错误样本</strong>：失败的 case 单独看，找模式；</li> <li>上 <strong>LangSmith / Helicone / Phoenix</strong> 一类的可观测平台，把线上请求都记下来，回放调优。</li></ol>`} />
+
+<QAHtmlItem question={`32. Few-shot 例子放几个最合适？放哪里？`} html={`<ul><li>简单任务：0-2 个；</li> <li>复杂格式：3-5 个；</li> <li>涉及边界情况：每种边界 1 个例子。</li></ul>
+<p>放在哪里？<strong>system prompt 后、user input 前</strong>。如果在多轮对话里，例子要保持稳定，<strong>别让用户输入混在里面</strong>。</p>`} />
+
+<QAHtmlItem question={`33. 什么是 Prompt 模板？怎么管理？`} html={`<p>把变量从 prompt 里抽出来：</p>
+<div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">const</span> tpl <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">\`</span><span class="token string">请把下面的中文翻译成 {{lang}}：
+
+&lt;text&gt;
+{{text}}
+&lt;/text&gt;</span><span class="token template-punctuation string">\`</span></span>
+
+<span class="token keyword">const</span> prompt <span class="token operator">=</span> tpl
+  <span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">'{{lang}}'</span><span class="token punctuation">,</span> <span class="token string">'English'</span><span class="token punctuation">)</span>
+  <span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token string">'{{text}}'</span><span class="token punctuation">,</span> <span class="token string">'你好'</span><span class="token punctuation">)</span>
+</code></pre></div>
+<p>工程上别自己拼字符串：</p>
+<ul><li><strong>LangChain <code>PromptTemplate</code></strong>：最常见；</li> <li><strong>Anthropic / OpenAI 自带的模板能力</strong>；</li> <li><strong>Mustache / Handlebars</strong>：纯文本场景；</li> <li><strong>Prompt 库 / Prompt 平台</strong>（LangSmith Hub、PromptLayer）：团队级版本控制 + A/B + 灰度。</li></ul>
+<p>不要把 prompt 写死在代码里，<strong>把它当成代码一样版本化</strong>，A/B 测试、回滚、灰度都靠它。</p>`} />
+
+<QAHtmlItem question={`34. Prompt Caching 是什么？为什么能省钱？`} html={`<p>Anthropic / OpenAI / Gemini 都支持。原理：把 prompt 的**前缀（不变的部分，比如长 system + 工具描述 + few-shot）**对应的 KV Cache 缓存下来，下次同样前缀直接命中。</p>
+<p>收益：</p>
+<ul><li>命中部分 token 计费 <strong>打折到 1/10 - 1/2</strong>；</li> <li>TTFT（首 token 时间）大幅下降。</li></ul>
+<p>工程上怎么用好：</p>
+<ol><li>system prompt 不要每次拼新内容，<strong>把变量放在末尾</strong>；</li> <li>few-shot 例子放在 system 末尾、用户输入前；</li> <li>监控<strong>命中率</strong>，命中率低就反推哪里在变。</li></ol>`} />
+
+<QAHtmlItem question={`35. Persona 是什么？什么时候要慎用？`} html={`<p>Persona = 给模型设定的人格。比如「你是一个温柔耐心的客服小可，自称『小可』」。</p>
+<p><strong>好处</strong>：风格一致、用户体验稳定。</p>
+<p><strong>慎用</strong>的场景：</p>
+<ul><li>涉及专业判断的（医疗、法律），人格化会让用户错误信任；</li> <li>容易被用于 <strong>越狱</strong>（DAN 那类）；</li> <li>多语言场景容易翻车（人格可能只在中文里起作用）。</li></ul>`} />
+
+<QAHtmlItem question={`36. 怎么压缩太长的 Prompt？`} html={`<p>四个维度，按优先级：</p>
+<ol><li><strong>历史消息摘要</strong>：旧轮次用一段总结代替；</li> <li><strong>RAG 化静态背景</strong>：把"产品介绍 / 政策条款"这类放向量库，只在需要时拼回来；</li> <li><strong>缩写约定</strong>：在 system 里告诉模型「PR = Pull Request、SOP = 操作规程」，正文用缩写；</li> <li><strong>Prompt Caching</strong>：不动 prompt 内容，让重复的部分免费。</li></ol>
+<p>不要靠"删表情符号、删空行"这种节省，省下的 token 杯水车薪。</p>`} />
+
+<QAHtmlItem question={`37. 什么时候不调 Prompt，直接微调？`} html={`<p>判断口径：</p>
+<table><thead><tr><th>场景</th> <th>Prompt</th> <th>微调</th></tr></thead> <tbody><tr><td>输出格式固定且复杂</td> <td>不行</td> <td>行</td></tr> <tr><td>内化大量企业内部知识</td> <td>不行（也可 RAG）</td> <td>行</td></tr> <tr><td>高频调用想压缩 prompt 省钱</td> <td>—</td> <td>行</td></tr> <tr><td>业务规则会频繁变</td> <td>行</td> <td>不行（要频繁重训）</td></tr> <tr><td>数据少（&lt; 200 条）</td> <td>行</td> <td>不行（不够）</td></tr></tbody></table>
+<p>一句话：<strong>业务规则变得快、数据少 → Prompt + RAG；业务规则稳定 + 数据多 + 调用量大 → 微调</strong>。</p>`} />
+
+<QAHtmlItem question={`38. Self-Consistency 和 Tree of Thoughts 是什么？`} html={`<ul><li><strong>Self-Consistency</strong>：CoT 跑多次（temperature 拉高一点），看多数投票。复杂数学 / 推理题准确率能提 5-10%。</li> <li><strong>Tree of Thoughts</strong>：让模型生成多个推理分支，每个分支再展开，<strong>树状探索</strong>最终选一条最好的。</li></ul>
+<p>代价都是 <strong>token 倍增</strong>，工程上很少跑全量，多用在评估、复杂决策点。</p>`} />
+
+<QAHtmlItem question={`39. Prompt 工程会不会被淘汰？`} html={`<p>不会，但会演化。</p>
+<ul><li>简单任务的 prompt 越来越不需要精雕细琢（模型变聪明了）；</li> <li><strong>复杂工作流的 prompt 编排</strong>（system / 工具描述 / few-shot / 输出约束的组合）<strong>反而变重</strong>；</li> <li>"Prompt 工程师"作为单一岗位会被合并到 AI Engineer 里，但<strong>写好 prompt 是 AI 工程师的基本功</strong>。</li></ul>`} />
+
+<QAHtmlItem question={`40. 给一个真实场景：让模型把用户聊天记录里的退款诉求抽取成结构化 JSON。`} html={`<div class="language-text extra-class"><pre class="language-text"><code># 角色
+你是一名客服质检员。
+
+# 任务
+从用户和客服的对话中，抽取**退款相关的关键信息**，输出 JSON。
+对话可能包含和退款无关的闲聊，请忽略。
+
+# 输入
+&amp;lt;conversation&gt;
+{{conversation}}
+&amp;lt;/conversation&gt;
+
+# 输出格式
+\`\`\`json
+{
+  "has_refund_request": true | false,
+  "order_id": "string | null",
+  "refund_reason": "string | null",
+  "refund_amount": number | null,
+  "agreed_by_agent": true | false | null,
+  "evidence_quotes": ["原文片段1", "原文片段2"]
+}
+\`\`\`
+
+# 约束
+- 不在对话里出现的字段一律返回 null，不要编。
+- evidence_quotes 必须是对话原文，不要改写。
+- 只输出 JSON，前后不要任何说明文字。
+
+# 示例
+输入：
+&amp;lt;conversation&gt;
+用户：我之前买的耳机想退，订单是 A100，没什么问题就是不想要了
+客服：可以的，明天处理
+&amp;lt;/conversation&gt;
+输出：
+{"has_refund_request": true, "order_id": "A100", "refund_reason": "不想要了", "refund_amount": null, "agreed_by_agent": true, "evidence_quotes": ["想退，订单是 A100", "可以的，明天处理"]}
+</code></pre></div>
+<p>面试常被追问的两点：</p>
+<ol><li>为什么用 <code>evidence_quotes</code>？—— 强迫模型在原文中找证据，<strong>减少幻觉</strong>；</li> <li>为什么字段类型写在注释里？—— 实战里建议升级到 JSON Schema + Tool Calling，注释只是 fallback。</li></ol>
+<hr/>`} />

@@ -2,12 +2,120 @@
 sidebar_position: 8
 ---
 
+import QAHtmlItem from "@site/src/components/QAHtmlItem";
+
 # # 八、模型微调 / 私有化部署 / ToB 落地
 
-- 原页面锚点：[# 八、模型微调 / 私有化部署 / ToB 落地](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#八、模型微调-私有化部署-tob-落地)
+- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#八、模型微调-私有化部署-tob-落地)
 
-<iframe
-  src="/poetries-ai-interview/AI面试题汇总.html#八、模型微调-私有化部署-tob-落地"
-  style={{width: "100%", height: "80vh", border: "1px solid var(--ifm-color-emphasis-300)", borderRadius: "8px"}}
-  loading="lazy"
-/>
+<QAHtmlItem question={`159. 大模型在 ToB 业务里落地有哪些核心难点？`} html={`<p>直接拿通用模型给企业用会撞上这些坑：</p>
+<ul><li><strong>不懂业务</strong>：训练语料是公网通用知识，对企业内部规章、产品文档一无所知；</li> <li><strong>幻觉风险</strong>：不知道时不会闭嘴，会"看着像那么回事"地编；</li> <li><strong>数据合规</strong>：员工 / 客户敏感信息不能直接送外部 API；</li> <li><strong>响应慢、单价高</strong>：交互密集业务直接调外部模型不友好；</li> <li><strong>可控性差</strong>：用户问答风格不符合公司话术。</li></ul>
+<p>主流解法：</p>
+<ol><li><strong>RAG</strong>：把企业知识向量化，给模型外挂记忆；</li> <li><strong>私有化部署</strong>：选开源模型（Qwen / DeepSeek / LLaMA）在自己机器上跑；</li> <li><strong>微调</strong>：把客服话术、产品规则训进模型；</li> <li><strong>工作流编排</strong>：Dify / Coze / FastGPT 把 Prompt + RAG + 工具串起来。</li></ol>`} />
+
+<QAHtmlItem question={`160. 模型幻觉的深层原因（再追问版）？`} html={`<p>不只是"瞎说"，拆开看：</p>
+<ol><li><strong>概率模型的天然倾向</strong>：在"算最可能的下一个 token"，不是"查事实"；</li> <li><strong>训练语料噪声</strong>：互联网真假混杂；</li> <li><strong>没有事实校验</strong>：出结果时不会回头验证；</li> <li><strong>上下文断裂</strong>：检索片段不全时会自动"补缝"；</li> <li><strong>任务边界模糊</strong>：开放性问题模型倾向于"展开发挥"。</li></ol>
+<p>减少幻觉是组合拳：RAG + 引用 + 二次校验 + 低温 + 拒答指令。</p>`} />
+
+<QAHtmlItem question={`161. 微调（Fine-tuning）核心是什么？什么时候才该用？`} html={`<p>在已经预训练好的模型上<strong>用领域数据继续训练</strong>，把权重调整到对该领域更敏感。理解成"再上岗培训"，不是"重新培养"。</p>
+<p>适合：</p>
+<ul><li>输出格式 / 风格特别固定（客服话术、报告模板）；</li> <li>行业术语 / 知识体系密集（医疗、法律、金融）；</li> <li>prompt 膨胀到不可控，希望把规则"内化"省 token；</li> <li>闭源场景下本地化部署。</li></ul>
+<p><strong>不适合</strong>：</p>
+<ul><li>业务规则会频繁变（每次都重训性价比低）；</li> <li>数据少（&lt; 200 条）；</li> <li>短期内 RAG / Prompt 还能优化。</li></ul>`} />
+
+<QAHtmlItem question={`162. 全参微调 vs PEFT（LoRA / QLoRA）区别？`} html={`<table><thead><tr><th></th> <th>Full Fine-tuning</th> <th>PEFT</th></tr></thead> <tbody><tr><td>训练对象</td> <td>全部权重</td> <td>一小部分（增量矩阵）</td></tr> <tr><td>显存</td> <td>极高（70B 几百 G）</td> <td>单卡 24G 也能玩</td></tr> <tr><td>训练速度</td> <td>慢</td> <td>快几倍到十几倍</td></tr> <tr><td>效果上限</td> <td>最好</td> <td>略弱，95% 场景够用</td></tr> <tr><td>过拟合 / 灾难性遗忘</td> <td>容易</td> <td>影响小</td></tr> <tr><td>适合</td> <td>大厂底座</td> <td>中小团队业务定制</td></tr></tbody></table>
+<p>99% 应用层用 PEFT 就够，<strong>LoRA / QLoRA 是甜点</strong>。</p>`} />
+
+<QAHtmlItem question={`163. LoRA 为什么能省显存？`} html={`<p>核心思想：<strong>别动原矩阵，旁边加两个小矩阵</strong>。</p>
+<p>数学上：原权重 W 冻结，新增低秩矩阵 A、B（rank 通常 8 - 64），让 <code>W' = W + A·B</code>。训练只更新 A、B（参数量小一两个数量级），推理时把 A·B 合并回去。</p>
+<p>收益：</p>
+<ul><li>显存占用大幅下降；</li> <li>训练速度快几倍；</li> <li>训完只存 A、B（几十 MB），换底座或叠加多个 LoRA 都方便；</li> <li><strong>QLoRA</strong> 进一步把基座量化到 4bit，单卡能玩 70B。</li></ul>`} />
+
+<QAHtmlItem question={`164. 微调要准备什么数据？格式怎么定？`} html={`<p><strong>数据类型</strong>：</p>
+<table><thead><tr><th>类型</th> <th>形态</th> <th>适合</th></tr></thead> <tbody><tr><td>指令数据</td> <td><code>{instruction, input, output}</code></td> <td>让模型听特定指令</td></tr> <tr><td>对话数据</td> <td><code>messages: [{role, content}]</code></td> <td>Chat 类模型</td></tr> <tr><td>知识 QA</td> <td>上下文 + 问答对</td> <td>强化领域问答</td></tr> <tr><td>偏好数据</td> <td><code>{prompt, chosen, rejected}</code></td> <td>DPO / RLHF 对齐</td></tr></tbody></table>
+<p><strong>质量比数量重要</strong>：</p>
+<ul><li>1000 条干净 &gt; 10 万条杂乱；</li> <li>去重、去矛盾、去低质；</li> <li>风格 / 长度 / 格式统一（模型很会学风格）；</li> <li>留 5-10% 做验证集；</li> <li>token 长度尽量贴近实际推理分布。</li></ul>`} />
+
+<QAHtmlItem question={`165. 私有化部署有哪些选项？`} html={`<p>按规模：</p>
+<table><thead><tr><th>规模</th> <th>推荐</th></tr></thead> <tbody><tr><td>单机 / 玩具</td> <td>Ollama、LM Studio、llama.cpp（CPU/Metal）</td></tr> <tr><td>单卡生产</td> <td>vLLM + 14B-32B 量化模型</td></tr> <tr><td>多卡 / 高并发</td> <td>vLLM / SGLang + 70B 模型</td></tr> <tr><td>集群</td> <td>TGI / Triton + K8s</td></tr> <tr><td>企业一体机</td> <td>阿里 / 腾讯 / 火山 / 智谱的私有化解决方案</td></tr></tbody></table>
+<p>vLLM 是事实标准，PagedAttention 让吞吐高出传统几倍。</p>`} />
+
+<QAHtmlItem question={`166. Dify / Coze / FastGPT 这类平台怎么选？`} html={`<table><thead><tr><th>维度</th> <th>Dify</th> <th>Coze</th> <th>FastGPT</th> <th>LangFlow</th></tr></thead> <tbody><tr><td>开源</td> <td>是</td> <td>否（字节托管）</td> <td>是</td> <td>是</td></tr> <tr><td>私有部署</td> <td>是</td> <td>否</td> <td>是</td> <td>是</td></tr> <tr><td>国内合规</td> <td>看部署</td> <td>友好</td> <td>友好</td> <td>看部署</td></tr> <tr><td>工作流可视化</td> <td>是</td> <td>是</td> <td>是</td> <td>是（LangChain 底）</td></tr> <tr><td>Agent / 多 Agent</td> <td>中</td> <td>强</td> <td>中</td> <td>灵活但要写</td></tr> <tr><td>模型支持</td> <td>全</td> <td>主要豆包 / GPT</td> <td>全</td> <td>全</td></tr> <tr><td>适合</td> <td>通用快速搭建</td> <td>字节生态 / 抖音渠道</td> <td>知识库为主</td> <td>已用 LangChain</td></tr></tbody></table>
+<p>选型小结：</p>
+<ul><li><strong>想完全自控 + 私有化</strong>：Dify / FastGPT；</li> <li><strong>抖音 / 飞书 / 公众号</strong>：Coze；</li> <li><strong>重 RAG 知识库</strong>：FastGPT 起步快；</li> <li><strong>已用 LangChain + 想可视化</strong>：LangFlow。</li></ul>`} />
+
+<QAHtmlItem question={`167. 自己搭 LLM 应用平台 vs 用 Dify？`} html={`<table><thead><tr><th></th> <th>自己搭</th> <th>用 Dify</th></tr></thead> <tbody><tr><td>上手</td> <td>慢</td> <td>快</td></tr> <tr><td>定制</td> <td>自由</td> <td>受抽象限制</td></tr> <tr><td>维护</td> <td>全自己</td> <td>跟社区版本</td></tr> <tr><td>性能</td> <td>可极致优化</td> <td>中规中矩</td></tr> <tr><td>适合</td> <td>超大流量 / 强定制</td> <td>中小项目 / 内部工具 / MVP</td></tr></tbody></table>
+<p>务实结论：MVP / 内部工具用 Dify 先跑通，核心业务自研，<strong>混合最常见</strong>。</p>`} />
+
+<QAHtmlItem question={`168. Function Calling 的优缺点？为什么很多团队转 MCP？`} html={`<p><strong>优点</strong>：上手快、几乎所有 SDK 都支持、模型生态成熟。</p>
+<p><strong>缺点</strong>：</p>
+<ul><li>没有跨厂商标准；</li> <li>工具描述全靠塞 prompt，工具多了 token 暴涨；</li> <li>没内建权限模型；</li> <li>跨语言 / 跨进程不友好；</li> <li>工具发现 / 热加载难。</li></ul>
+<p>这些短板正是 MCP 想解的，所以 2026 年明显朝 MCP 倾斜。</p>`} />
+
+<QAHtmlItem question={`169. Agent Loop 在工程里有哪些坑？`} html={`<p>跑过 Agent 的人都被这些坑过：</p>
+<ul><li>死循环 / 振荡；</li> <li>Token 烧得飞快；</li> <li>错误被放大；</li> <li>越权风险；</li> <li>不会停。</li></ul>
+<p>兜底必做：</p>
+<ol><li>设硬上限（步数 / token / 时间）；</li> <li>重复检测；</li> <li>工具白名单 + 危险操作二次确认；</li> <li>全链路日志；</li> <li>上下文压缩。</li></ol>`} />
+
+<QAHtmlItem question={`170. ElasticSearch / 倒排索引在 AI 场景的作用？`} html={`<p>向量检索擅长语义，倒排索引擅长<strong>精确匹配 / 关键词 / 字段过滤</strong>。</p>
+<p>在 RAG 场景下，最佳实践是 <strong>ElasticSearch + 向量库混合检索</strong>：</p>
+<ul><li>ES 做 BM25 召回 + 字段过滤（按部门、时间、标签）；</li> <li>向量库做语义召回；</li> <li>RRF 合并结果。</li></ul>
+<p>如果团队已经有 ES 集群，可以直接用 ES 的 dense_vector + KNN，少引入一个组件。</p>`} />
+
+<QAHtmlItem question={`171. Neo4j / 知识图谱在 AI 场景的作用？`} html={`<p>把"实体 + 关系"显式建模成图：</p>
+<ul><li>节点：人、公司、产品、订单；</li> <li>边：归属、关联、引用、合作。</li></ul>
+<p>适合：</p>
+<ul><li>多跳推理（"客户 A 的关联公司在哪些行业有业务？"）；</li> <li>反洗钱 / 合规审查（关系穿透）；</li> <li>个性化推荐（基于关系）。</li></ul>
+<p>GraphRAG 就是基于知识图谱的 RAG，<strong>适合关系复杂、单文档语义不够的场景</strong>。</p>`} />
+
+<QAHtmlItem question={`172. Docker Compose 在 AI 开发提效里能做什么？`} html={`<p>本地一键起依赖（向量库 + Redis + Postgres + 监控）：</p>
+<div class="language-yaml extra-class"><pre class="language-yaml"><code><span class="token key atrule">services</span><span class="token punctuation">:</span>
+  <span class="token key atrule">milvus</span><span class="token punctuation">:</span>
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> milvusdb/milvus
+    <span class="token key atrule">ports</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">'19530:19530'</span><span class="token punctuation">]</span>
+  <span class="token key atrule">redis</span><span class="token punctuation">:</span>
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> redis<span class="token punctuation">:</span>7<span class="token punctuation">-</span>alpine
+  <span class="token key atrule">postgres</span><span class="token punctuation">:</span>
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> pgvector/pgvector<span class="token punctuation">:</span>pg16
+  <span class="token key atrule">langfuse</span><span class="token punctuation">:</span>
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> langfuse/langfuse
+</code></pre></div>
+<p><code>docker compose up -d</code> 一秒起完，免去手动安装。</p>
+<p>生产场景一般会上 K8s，但 dev / 测试 / 小型企业一直用 Compose 也合理。</p>`} />
+
+<QAHtmlItem question={`173. LangSmith / Helicone / Langfuse 选哪个？`} html={`<table><thead><tr><th></th> <th>LangSmith</th> <th>Helicone</th> <th>Langfuse</th></tr></thead> <tbody><tr><td>开源</td> <td>否</td> <td>否</td> <td>是</td></tr> <tr><td>自部署</td> <td>否</td> <td>部分</td> <td>是</td></tr> <tr><td>和 LangChain 集成</td> <td>原生</td> <td>通用</td> <td>原生</td></tr> <tr><td>数据集 / 评估</td> <td>强</td> <td>弱</td> <td>中</td></tr> <tr><td>价格</td> <td>中</td> <td>低</td> <td>自部署免费</td></tr></tbody></table>
+<p>中小项目 / 合规要求高 → <strong>Langfuse 自部署</strong>；已用 LangChain + 不在意合规 → LangSmith。</p>`} />
+
+<QAHtmlItem question={`174. vLLM 为什么吞吐高？`} html={`<p>vLLM 推理引擎的两个核心创新：</p>
+<ol><li><strong>PagedAttention</strong>：把 KV Cache 按页存（类似操作系统虚拟内存），<strong>消除显存碎片</strong>，能塞更多并发；</li> <li><strong>Continuous Batching</strong>：新请求随时插入批次，<strong>不等慢的请求</strong>。传统 batching 一个慢拖一片。</li></ol>
+<p>效果：单卡吞吐比 transformers + naive batching 高 5-10 倍。</p>
+<p>竞品：SGLang（更激进的优化）、TGI（HuggingFace 出品）、TensorRT-LLM（NVIDIA 官方，最快但配置复杂）。</p>`} />
+
+<QAHtmlItem question={`175. 模型量化（INT8 / INT4 / AWQ / GPTQ）是什么？`} html={`<p>模型权重从 FP16 / BF16 压缩到更低精度，<strong>显存和延迟下降，精度有少量损失</strong>。</p>
+<table><thead><tr><th>类型</th> <th>精度</th> <th>显存压缩</th> <th>典型损失</th></tr></thead> <tbody><tr><td>FP16 / BF16</td> <td>原始</td> <td>1×</td> <td>—</td></tr> <tr><td>INT8</td> <td>8 位整数</td> <td>2×</td> <td>&lt; 1%</td></tr> <tr><td>INT4</td> <td>4 位整数</td> <td>4×</td> <td>2-5%</td></tr> <tr><td>AWQ</td> <td>4 位，关键权重保护</td> <td>4×</td> <td>&lt; 2%</td></tr> <tr><td>GPTQ</td> <td>4 位，基于梯度优化</td> <td>4×</td> <td>&lt; 2%</td></tr></tbody></table>
+<p>实战：</p>
+<ul><li>推理优先 <strong>AWQ</strong>（性能稳定、社区生态好）；</li> <li>端侧 / 极端资源紧用 INT4 / GGUF；</li> <li>训练阶段一般不量化（影响梯度）。</li></ul>`} />
+
+<QAHtmlItem question={`176. 模型蒸馏（Distillation）是什么？`} html={`<p>用大模型（Teacher）"教"小模型（Student）：</p>
+<ol><li>让 Teacher 生成大量高质量样本（包含 logits / token 概率）；</li> <li>训练 Student 模仿 Teacher 的输出分布。</li></ol>
+<p>效果：</p>
+<ul><li>Student 参数量 1/10，但效果接近 Teacher；</li> <li>推理速度快好几倍；</li> <li>经典案例：DistilBERT、DeepSeek-V3 蒸馏出来的小模型。</li></ul>
+<p>适合：业务场景固定、追求极致延迟 / 成本的生产环境。</p>`} />
+
+<QAHtmlItem question={`177. 私有化部署 GPU 选什么？`} html={`<table><thead><tr><th>卡</th> <th>显存</th> <th>适合</th></tr></thead> <tbody><tr><td>RTX 4090</td> <td>24G</td> <td>个人 / 试验，14B 模型量化版</td></tr> <tr><td>A10 / A30</td> <td>24G</td> <td>中小生产，32B 量化版</td></tr> <tr><td>L40S</td> <td>48G</td> <td>70B 模型量化版</td></tr> <tr><td>A100 80G</td> <td>80G</td> <td>70B 全精度、训练</td></tr> <tr><td>H100</td> <td>80G</td> <td>主流大模型推理 / 训练</td></tr> <tr><td>H200 / B200</td> <td>141G+</td> <td>旗舰生产，175B+</td></tr></tbody></table>
+<p>国内合规：A100/H100 受出口管制，替代方案为 A800/H800（被砍 NVLink 带宽）或华为 910B。</p>`} />
+
+<QAHtmlItem question={`178. 模型评测常见 benchmark？`} html={`<table><thead><tr><th>benchmark</th> <th>测什么</th></tr></thead> <tbody><tr><td><strong>MMLU</strong></td> <td>57 学科多选题，知识广度</td></tr> <tr><td><strong>GSM8K</strong></td> <td>小学数学题，多步推理</td></tr> <tr><td><strong>MATH</strong></td> <td>高难度数学</td></tr> <tr><td><strong>HumanEval / MBPP</strong></td> <td>Python 代码生成</td></tr> <tr><td><strong>SWE-bench</strong></td> <td>真实软件工程</td></tr> <tr><td><strong>MT-Bench / AlpacaEval</strong></td> <td>多轮对话质量</td></tr> <tr><td><strong>C-Eval / CMMLU</strong></td> <td>中文综合能力</td></tr> <tr><td><strong>GAIA / AgentBench</strong></td> <td>Agent 能力</td></tr></tbody></table>
+<p>注意：<strong>benchmark 分数和实际业务效果不一定一致</strong>，最终还是要拿业务数据测。</p>`} />
+
+<QAHtmlItem question={`179. 私有化模型怎么更新？`} html={`<p>不像调 API 那样无感升级。常见策略：</p>
+<ol><li><strong>灰度切换</strong>：新模型挂上来，按流量比例分流，对比指标；</li> <li><strong>双跑评估</strong>：旧 / 新模型同时跑，离线对比答案差异；</li> <li><strong>回归测试集</strong>：维护一组业务测试 case，新版必须通过；</li> <li><strong>可快速回滚</strong>：模型版本管理 + 一键切回旧版本；</li> <li><strong>保留旧版本一段时间</strong>：用户反馈"上次回答更好"时能回查。</li></ol>
+<p>不要"周末偷偷换新模型"。</p>`} />
+
+<QAHtmlItem question={`180. ToB 项目灰度发布有什么特殊？`} html={`<p>ToC 灰度按用户 ID hash，ToB 不行：</p>
+<ul><li>一个客户的几百用户<strong>必须同时升级</strong>（避免同公司内体验割裂）；</li> <li>必须支持<strong>按客户灰度</strong>（先小客户 / 试点客户 / 大客户）；</li> <li>部分客户合同里写明"不要给我用新版"，要尊重；</li> <li><strong>告知机制</strong>：升级前邮件 + 站内信通知，让客户管理员有准备；</li> <li><strong>回滚要在合同 SLA 内</strong>。</li></ul>`} />
+
+<QAHtmlItem question={`181. ToB 项目的成本怎么算给客户看？`} html={`<p>客户最关心的不是技术，是钱。展示口径：</p>
+<ul><li><strong>按 token 计费</strong>透明：每次调用 input/output token 给出；</li> <li><strong>月度账单</strong>：按租户 / 按用户 / 按使用场景；</li> <li><strong>预算告警</strong>：超过 X% 自动通知；</li> <li><strong>模型分级</strong>：便宜模型默认、贵模型按需开；</li> <li><strong>缓存命中率</strong>告诉客户"省了多少钱"。</li></ul>
+<p>成本可见性是 ToB 续费的关键。</p>
+<hr/>`} />

@@ -2,12 +2,240 @@
 sidebar_position: 5
 ---
 
+import QAHtmlItem from "@site/src/components/QAHtmlItem";
+
 # # 五、Function Calling / 工具调用 / MCP
 
-- 原页面锚点：[# 五、Function Calling / 工具调用 / MCP](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#五、function-calling-工具调用-mcp)
+- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#五、function-calling-工具调用-mcp)
 
-<iframe
-  src="/poetries-ai-interview/AI面试题汇总.html#五、function-calling-工具调用-mcp"
-  style={{width: "100%", height: "80vh", border: "1px solid var(--ifm-color-emphasis-300)", borderRadius: "8px"}}
-  loading="lazy"
-/>
+<QAHtmlItem question={`91. Function Calling 是什么？背后的机制？`} html={`<p>模型<strong>不会直接执行</strong>任何函数，它做的事是：</p>
+<ol><li>收到 prompt 和工具列表（包含 name / description / parameters schema）；</li> <li>模型判断该调用哪个工具、参数是什么，<strong>以 JSON 形式吐出来</strong>；</li> <li>你的代码读到这个 JSON → <strong>实际执行函数</strong> → 把返回值拼成 ToolMessage 喂回模型；</li> <li>模型基于新结果继续决策。</li></ol>
+<p>本质上 Function Calling = <strong>模型负责"决策 + 参数生成"，你的代码负责"执行 + 反馈"</strong>。</p>`} />
+
+<QAHtmlItem question={`92. Function Calling 一次完整流程？`} html={`<div class="language-python extra-class"><pre class="language-python"><code>tools <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+  <span class="token string">"name"</span><span class="token punctuation">:</span> <span class="token string">"get_weather"</span><span class="token punctuation">,</span>
+  <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"查询某城市当前天气，返回温度和天气状况。"</span><span class="token punctuation">,</span>
+  <span class="token string">"parameters"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+    <span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"object"</span><span class="token punctuation">,</span>
+    <span class="token string">"properties"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+      <span class="token string">"city"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token string">"type"</span><span class="token punctuation">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span> <span class="token string">"description"</span><span class="token punctuation">:</span> <span class="token string">"城市名，如'北京'"</span><span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string">"required"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token string">"city"</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">]</span>
+
+messages <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">{</span><span class="token string">"role"</span><span class="token punctuation">:</span> <span class="token string">"user"</span><span class="token punctuation">,</span> <span class="token string">"content"</span><span class="token punctuation">:</span> <span class="token string">"北京今天天气怎么样？"</span><span class="token punctuation">}</span><span class="token punctuation">]</span>
+
+<span class="token comment"># 第一次调用：模型决定调工具</span>
+resp <span class="token operator">=</span> llm<span class="token punctuation">.</span>chat<span class="token punctuation">(</span>messages<span class="token punctuation">,</span> tools<span class="token operator">=</span>tools<span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> resp<span class="token punctuation">.</span>tool_calls<span class="token punctuation">:</span>
+    <span class="token keyword">for</span> call <span class="token keyword">in</span> resp<span class="token punctuation">.</span>tool_calls<span class="token punctuation">:</span>
+        result <span class="token operator">=</span> TOOLS<span class="token punctuation">[</span>call<span class="token punctuation">.</span>name<span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token operator">**</span>call<span class="token punctuation">.</span>arguments<span class="token punctuation">)</span>
+        messages<span class="token punctuation">.</span>append<span class="token punctuation">(</span>resp<span class="token punctuation">.</span>message<span class="token punctuation">)</span>
+        messages<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+          <span class="token string">"role"</span><span class="token punctuation">:</span> <span class="token string">"tool"</span><span class="token punctuation">,</span>
+          <span class="token string">"tool_call_id"</span><span class="token punctuation">:</span> call<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">,</span>
+          <span class="token string">"content"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>result<span class="token punctuation">)</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token comment"># 第二次调用：模型基于工具结果继续</span>
+final <span class="token operator">=</span> llm<span class="token punctuation">.</span>chat<span class="token punctuation">(</span>messages<span class="token punctuation">)</span>
+<span class="token keyword">print</span><span class="token punctuation">(</span>final<span class="token punctuation">.</span>content<span class="token punctuation">)</span>  <span class="token comment"># 北京今天 26 度，晴</span>
+</code></pre></div>
+<p>要点：</p>
+<ul><li>同一次回答可能<strong>返回多个 tool_calls</strong>（并行执行更快）；</li> <li>tool_call_id 要对得上，否则模型会蒙；</li> <li>工具执行失败也要把错误塞回去，让模型自己决定怎么办（重试 / 换工具 / 报错）。</li></ul>`} />
+
+<QAHtmlItem question={`93. 工具描述写得好不好直接决定调用准不准？`} html={`<p>模型理解工具只靠你写的 description + parameters schema。写得不好会出三类问题：</p>
+<ol><li><strong>该调没调</strong>：描述模糊，模型没意识到这个工具能解决；</li> <li><strong>调错工具</strong>：两个工具描述相似，模型抓阄；</li> <li><strong>参数错</strong>：字段名 / 必填 / 枚举值 / 单位没说清。</li></ol>
+<p>实战经验：</p>
+<ul><li>描述写"<strong>能做什么</strong>"+ "<strong>不能做什么</strong>" + "<strong>典型用法</strong>"；</li> <li>参数字段加 <strong>取值范围、单位、格式、示例</strong>；</li> <li>必填的字段 description 里再强调一遍 "Required";</li> <li>工具数量超过 15 个就分组加载，<strong>不要全部塞 system</strong>。</li></ul>`} />
+
+<QAHtmlItem question={`94. Function Calling 和 JSON Mode 有什么区别？`} html={`<table><thead><tr><th></th> <th>JSON Mode</th> <th>Function Calling</th></tr></thead> <tbody><tr><td>目的</td> <td>让输出是合法 JSON</td> <td>让输出符合特定函数 schema</td></tr> <tr><td>用法</td> <td>一个布尔开关</td> <td>定义 tools 列表</td></tr> <tr><td>严格度</td> <td>只保证合法 JSON</td> <td>保证字段 / 类型 / 必填</td></tr> <tr><td>适合</td> <td>自由 schema 输出</td> <td>精确控制结构</td></tr> <tr><td>是否触发调用流程</td> <td>不会</td> <td>会进入 tool_calls 循环</td></tr></tbody></table>
+<p>需要结构化输出但<strong>不需要后续调函数</strong>：用 Structured Output / JSON Schema 即可，不用走完整 Tool Calling 循环。</p>`} />
+
+<QAHtmlItem question={`95. 多个工具同时调用怎么管？`} html={`<p>现代模型（GPT-4o / Claude / DeepSeek-V3）一次回答可以返回<strong>多个 tool_calls</strong>。</p>
+<p>工程上：</p>
+<ol><li><strong>检查是否可并行</strong>：纯读 / 无依赖的工具直接 <code>Promise.all</code> 并发；</li> <li><strong>有依赖的</strong>串行：比如"先查订单再退款"，必须等订单查完；</li> <li><strong>合并结果</strong>：所有结果都加进 messages 后再调下一轮 LLM；</li> <li><strong>失败处理</strong>：单个工具失败不要影响其他，<strong>把失败信息也塞回去让模型决定</strong>。</li></ol>`} />
+
+<QAHtmlItem question={`96. 工具调用失败怎么处理？`} html={`<p>不要直接 throw 给 Agent 框架。统一格式塞回去：</p>
+<div class="language-python extra-class"><pre class="language-python"><code><span class="token keyword">try</span><span class="token punctuation">:</span>
+    result <span class="token operator">=</span> tools<span class="token punctuation">[</span>call<span class="token punctuation">.</span>name<span class="token punctuation">]</span><span class="token punctuation">(</span><span class="token operator">**</span>call<span class="token punctuation">.</span>arguments<span class="token punctuation">)</span>
+    content <span class="token operator">=</span> json<span class="token punctuation">.</span>dumps<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"success"</span><span class="token punctuation">:</span> <span class="token boolean">True</span><span class="token punctuation">,</span> <span class="token string">"data"</span><span class="token punctuation">:</span> result<span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> ValidationError <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    content <span class="token operator">=</span> json<span class="token punctuation">.</span>dumps<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"success"</span><span class="token punctuation">:</span> <span class="token boolean">False</span><span class="token punctuation">,</span> <span class="token string">"error"</span><span class="token punctuation">:</span> <span class="token string">"invalid_params"</span><span class="token punctuation">,</span> <span class="token string">"msg"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> TimeoutError<span class="token punctuation">:</span>
+    content <span class="token operator">=</span> json<span class="token punctuation">.</span>dumps<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"success"</span><span class="token punctuation">:</span> <span class="token boolean">False</span><span class="token punctuation">,</span> <span class="token string">"error"</span><span class="token punctuation">:</span> <span class="token string">"timeout"</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token keyword">except</span> Exception <span class="token keyword">as</span> e<span class="token punctuation">:</span>
+    content <span class="token operator">=</span> json<span class="token punctuation">.</span>dumps<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"success"</span><span class="token punctuation">:</span> <span class="token boolean">False</span><span class="token punctuation">,</span> <span class="token string">"error"</span><span class="token punctuation">:</span> <span class="token string">"internal"</span><span class="token punctuation">,</span> <span class="token string">"msg"</span><span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre></div>
+<p>让模型看到错误后<strong>自己决定</strong>：</p>
+<ul><li>重试（参数错的话改参数再试）；</li> <li>换工具；</li> <li>跟用户解释。</li></ul>`} />
+
+<QAHtmlItem question={`97. 工具结果太大怎么办？`} html={`<p>工具返回 50k token 直接塞回 LLM 就炸了。常见做法：</p>
+<ol><li><strong>裁剪</strong>：只取前 N 行 / 关键字段；</li> <li><strong>摘要</strong>：用小模型把结果摘成 1k token 以内；</li> <li><strong>分页</strong>：让模型自己决定要不要看后面几页；</li> <li><strong>存档 + 引用</strong>：完整结果存对象存储，工具返回一个引用 ID，需要详情时再单独取；</li> <li><strong>结构化裁剪</strong>：根据请求里的字段筛选返回内容。</li></ol>`} />
+
+<QAHtmlItem question={`98. 工具调用的"幂等性"为什么重要？`} html={`<p>Agent 有时会重试 / 重复调同一个工具。如果不是幂等的：</p>
+<ul><li>重复扣款；</li> <li>重复发短信；</li> <li>重复创建订单。</li></ul>
+<p>要做的事：</p>
+<ul><li><strong>写操作必须支持 idempotency_key</strong>（前端生成 UUID 传给工具）；</li> <li>服务端用这个 key 做去重；</li> <li><strong>危险操作（删除 / 转账）走 HIL</strong>，让用户确认。</li></ul>`} />
+
+<QAHtmlItem question={`99. MCP 是什么？为什么需要它？`} html={`<p>MCP = <strong>Model Context Protocol</strong>（模型上下文协议，Anthropic 提出，OpenAI / Google 等厂商陆续支持）。</p>
+<p>要解决的问题：<strong>Function Calling 没有跨厂商 / 跨进程 / 跨语言的标准协议</strong>。</p>
+<p>每个厂商自己定义 Tool Calling 的格式，工具是用 Python 写的还是 Node 写的都得重新接一遍。MCP 把这件事<strong>协议化</strong>：</p>
+<ul><li>工具方实现 MCP Server（用什么语言无所谓，按协议跑就行）；</li> <li>客户端（Claude Code / Cursor / 自研 Agent）通过 MCP 协议连这些 Server；</li> <li>协议规定了 list_tools、call_tool、list_resources、list_prompts 等标准接口（底层基于 JSON-RPC）。</li></ul>
+<p>效果：<strong>写一次工具，所有支持 MCP 的客户端都能用</strong>。</p>`} />
+
+<QAHtmlItem question={`100. MCP 的三层核心结构（Server / Client / Bridge）`} html={`<p>很多面试官会追问 MCP 的结构，按三角色记：</p>
+<ul><li><strong>Server（工具服务端）</strong>：提供一组可用的工具 / 资源 / Prompt（如文件读写、数据库、HTTP 请求、图像生成）；</li> <li><strong>Client（模型 / IDE / Agent）</strong>：通过协议访问 Server，把工具能力暴露给 LLM；</li> <li><strong>Bridge（中间层）</strong>：负责协议转发、权限校验、上下文同步、日志审计。Claude Code / Cursor 自身就充当 Bridge 角色。</li></ul>
+<p>调用链路：</p>
+<div class="language- extra-class"><pre class="language-text"><code>LLM → Function Calling → MCP Client → (Bridge) → MCP Server → 真实外部资源
+</code></pre></div>
+<p>工程上：Server 由工具方独立维护，Client 由 Agent 框架实现，Bridge 决定了"哪些工具能被哪个用户哪个会话调用"，是企业级权限和审计的关键点。</p>`} />
+
+<QAHtmlItem question={`101. MCP 和 Function Calling 是替代关系吗？`} html={`<p>不是。</p>
+<ul><li>Function Calling 是<strong>模型理解工具的方式</strong>（schema → JSON 调用）；</li> <li>MCP 是<strong>工具进程间通信的协议</strong>（stdio / HTTP / SSE）。</li></ul>
+<p>模型还是用 Function Calling 调工具，<strong>只是工具的实现可以放在另一个 MCP Server 里</strong>，跨语言、跨进程、跨机器。</p>
+<p>类比 HTTP 和 RESTful：HTTP 是协议，RESTful 是风格，MCP 让"工具的封装"也变得跨生态可复用。</p>`} />
+
+<QAHtmlItem question={`102. Function Calling vs MCP 全维度对比`} html={`<table><thead><tr><th>维度</th> <th>Function Calling</th> <th>MCP</th></tr></thead> <tbody><tr><td>定义者</td> <td>OpenAI（2023）</td> <td>Anthropic（2024，事实标准）</td></tr> <tr><td>核心目标</td> <td>模型调用外部函数</td> <td>模型与外部环境标准化交互</td></tr> <tr><td>注册方式</td> <td>静态注册（请求时塞 tools 列表）</td> <td>动态发现 / 热加载</td></tr> <tr><td>协议层</td> <td>SDK 私有格式</td> <td>JSON-RPC（任意语言）</td></tr> <tr><td>工具描述</td> <td>每次请求都拼进 system，token 暴涨</td> <td>Client 启动时拉一次，可复用</td></tr> <tr><td>安全机制</td> <td>完全靠开发者自管</td> <td>协议内建权限 + Bridge 兜底</td></tr> <tr><td>跨语言 / 跨进程</td> <td>受 SDK 限制</td> <td>任意语言 + 跨进程（stdio / SSE / HTTP）</td></tr> <tr><td>工具结果中转</td> <td>必须人工塞回 messages</td> <td>协议直接返回</td></tr> <tr><td>适合场景</td> <td>单 Agent 单语言、简单工具</td> <td>多 Agent 协作 / IDE 集成 / 系统级控制</td></tr></tbody></table>
+<p>一句话：<strong>Function Calling 是模型协议，MCP 是生态协议</strong>。前者解决"模型怎么调函数"，后者解决"函数怎么跨边界提供给模型"。</p>`} />
+
+<QAHtmlItem question={`103. MCP Server 一般怎么实现？`} html={`<p>最小 MCP Server（TypeScript）：</p>
+<div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">import</span> <span class="token punctuation">{</span> Server <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@modelcontextprotocol/sdk/server/index.js'</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> StdioServerTransport <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@modelcontextprotocol/sdk/server/stdio.js'</span>
+
+<span class="token keyword">const</span> server <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Server</span><span class="token punctuation">(</span><span class="token punctuation">{</span> name<span class="token operator">:</span> <span class="token string">'demo'</span><span class="token punctuation">,</span> version<span class="token operator">:</span> <span class="token string">'0.0.1'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> capabilities<span class="token operator">:</span> <span class="token punctuation">{</span> tools<span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+server<span class="token punctuation">.</span><span class="token function">setRequestHandler</span><span class="token punctuation">(</span><span class="token punctuation">{</span> method<span class="token operator">:</span> <span class="token string">'tools/list'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">(</span><span class="token punctuation">{</span>
+  tools<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+    name<span class="token operator">:</span> <span class="token string">'echo'</span><span class="token punctuation">,</span>
+    description<span class="token operator">:</span> <span class="token string">'把输入原样返回'</span><span class="token punctuation">,</span>
+    inputSchema<span class="token operator">:</span> <span class="token punctuation">{</span>
+      type<span class="token operator">:</span> <span class="token string">'object'</span><span class="token punctuation">,</span>
+      properties<span class="token operator">:</span> <span class="token punctuation">{</span> text<span class="token operator">:</span> <span class="token punctuation">{</span> type<span class="token operator">:</span> <span class="token string">'string'</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      required<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'text'</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span><span class="token punctuation">]</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+server<span class="token punctuation">.</span><span class="token function">setRequestHandler</span><span class="token punctuation">(</span><span class="token punctuation">{</span> method<span class="token operator">:</span> <span class="token string">'tools/call'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token punctuation">{</span> params <span class="token punctuation">}</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">if</span> <span class="token punctuation">(</span>params<span class="token punctuation">.</span>name <span class="token operator">===</span> <span class="token string">'echo'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span> content<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span> type<span class="token operator">:</span> <span class="token string">'text'</span><span class="token punctuation">,</span> text<span class="token operator">:</span> params<span class="token punctuation">.</span>arguments<span class="token punctuation">.</span>text <span class="token punctuation">}</span><span class="token punctuation">]</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+  <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'unknown tool'</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token keyword">const</span> transport <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StdioServerTransport</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">await</span> server<span class="token punctuation">.</span><span class="token function">connect</span><span class="token punctuation">(</span>transport<span class="token punctuation">)</span>
+</code></pre></div>
+<p>跑起来 + 在 Claude Code / Cursor 的配置里注册 → 模型就能调你的工具。</p>`} />
+
+<QAHtmlItem question={`104. MCP 三种传输方式（stdio / HTTP / SSE）怎么选？`} html={`<ul><li><strong>stdio</strong>：通过子进程的标准输入输出通信。<strong>简单可靠、本地 / Claude Code / Cursor 默认</strong>；</li> <li><strong>HTTP</strong>：远程服务的常规调用，无状态；</li> <li><strong>SSE</strong>：HTTP + 服务端推送，<strong>支持长连接 / 流式工具</strong>。</li></ul>
+<p>工程上 90% 选 stdio。需要远程共享 / 跨机器才上 HTTP / SSE。</p>`} />
+
+<QAHtmlItem question={`105. MCP 和 LangChain Tool 怎么共存？`} html={`<p>实战做法：</p>
+<ul><li>团队内部工具用 MCP Server 写，<strong>跨多个 Agent 客户端复用</strong>；</li> <li>LangChain 项目里可以装 <code>@langchain/mcp</code> 或类似适配器，把 MCP Server 自动转换成 LangChain Tool；</li> <li>反向也成立：LangChain Tool 也可以包成 MCP Server 暴露给外部客户端。</li></ul>
+<p>整体趋势：<strong>MCP 在成为事实协议</strong>，LangChain 不会消失但会从"封装一切"变成"和 MCP 互通"。</p>`} />
+
+<QAHtmlItem question={`106. 工具调用的 token 怎么算？`} html={`<p>容易被忽略：</p>
+<ul><li><strong>工具描述本身计费</strong>：所有工具的 description + parameters 都拼进 system，每次调用都计费；</li> <li><strong>tool_call 输出</strong>：模型吐的 JSON 算 output；</li> <li><strong>tool_result 输入</strong>：你回填的结果算 input；</li> <li><strong>多轮调用</strong>：每轮所有历史都重新计费（除非命中 Prompt Caching）。</li></ul>
+<p>优化：工具描述精炼、结果裁剪、用 Prompt Caching、按需加载工具。</p>`} />
+
+<QAHtmlItem question={`107. 工具权限 / 越权怎么控制？`} html={`<p>模型本身没有权限概念，<strong>全靠你的代码兜底</strong>。</p>
+<p>至少做这几层：</p>
+<ol><li><strong>工具白名单</strong>：当前会话 / 当前用户能看到哪些工具；</li> <li><strong>参数校验</strong>：执行前用 zod / JSON Schema 校验，类型不对直接拒；</li> <li><strong>数据范围隔离</strong>：工具内部根据 <code>user_id</code> 限定能查 / 写的数据范围；</li> <li><strong>危险操作 HIL</strong>：删除、转账、对外发消息都走人工确认；</li> <li><strong>审计日志</strong>：每次工具调用记录 who / when / what。</li></ol>
+<p>不要相信"模型不会调危险工具"。要假设它一定会调。</p>`} />
+
+<QAHtmlItem question={`108. 工具集合怎么管理（工具一多模型选错）？`} html={`<p>工具数量超过 10-15 个时模型选错率明显上升。常见策略：</p>
+<ol><li><strong>分组</strong>：按业务域分组（订单组、商品组、用户组），用户问题先路由到组；</li> <li><strong>动态加载</strong>：根据用户问题用一个轻量分类器选出 top 3-5 个工具，再传给主 Agent；</li> <li><strong>多 Agent 分工</strong>：每个子 Agent 只看自己负责的工具；</li> <li><strong>MCP Resources / Prompts</strong>：MCP 不只能注册 tools，还能注册 resources / prompts，把工具按粒度分层。</li></ol>`} />
+
+<QAHtmlItem question={`109. Skills 和 Function Calling 是什么关系？`} html={`<p>Anthropic 提出的 Skills（技能）是更高一层的封装：</p>
+<ul><li>一个 Skill 包含：<strong>一组工具 + 配套 prompt + 示例 + 触发条件</strong>；</li> <li>模型按用户意图<strong>自动加载</strong>对应的 Skill；</li> <li>让 Agent 能力可以像插件一样发布、共享、复用。</li></ul>
+<p>可以理解为：<strong>Function Calling 是单工具，Skill 是工具 + Prompt 的组合包</strong>。</p>`} />
+
+<QAHtmlItem question={`110. 工具调用的"自描述"为什么重要？`} html={`<p>工具的 schema 是模型理解工具的<strong>唯一信息源</strong>。模型看不到你的代码，只看 description + parameters。</p>
+<p>自描述好 = 描述清楚 + 字段有约束 + 示例齐全。</p>
+<p>不自描述（比如 <code>description: "do thing"</code>）= 模型只能瞎调。</p>`} />
+
+<QAHtmlItem question={`111. 一个常被问的场景：让 Agent 自动写代码并跑测试，应该怎么设计工具集？`} html={`<p>最小工具集：</p>
+<div class="language- extra-class"><pre class="language-text"><code>- list_directory(path): 看目录结构
+- read_file(path): 读文件
+- write_file(path, content): 写文件
+- edit_file(path, old, new): 局部修改
+- run_command(cmd): 执行命令
+- search_code(pattern): 搜代码
+</code></pre></div>
+<p>关键设计：</p>
+<ul><li><strong>edit_file 比 write_file 更安全</strong>，全量重写容易丢东西；</li> <li><strong>run_command 必须做白名单</strong>，禁止 <code>rm -rf</code>、<code>sudo</code> 等；</li> <li><strong>写文件必须先 read 再 write</strong>，避免误覆盖；</li> <li><strong>每次工具调用都打日志</strong>，便于回放。</li></ul>
+<p>这就是 Cursor / Claude Code 内部的最小工具集形态。</p>`} />
+
+<QAHtmlItem question={`112. 同一个 LLM 既给前端又给 Agent 用，工具怎么设计？`} html={`<p>抽两层：</p>
+<ul><li><strong>底层业务接口</strong>：纯后端，保持原样不要污染；</li> <li><strong>AI 工具层</strong>：在业务接口外面套一层封装，做参数转换、权限收敛、错误格式化、结果裁剪。</li></ul>
+<p>不要直接把后端接口暴露给 Agent，否则：</p>
+<ul><li>权限漏；</li> <li>错误信息泄露内部细节；</li> <li>返回数据太大；</li> <li>参数命名前后端不一致让模型困惑。</li></ul>`} />
+
+<QAHtmlItem question={`113. Anthropic Skills 是什么？和 MCP 什么关系？`} html={`<p>Skills 是 Anthropic 提的 Agent 能力封装单元，<strong>比 MCP Tool 高一层</strong>。</p>
+<p>一个 Skill 包含：</p>
+<ul><li><strong>能力描述</strong>（什么时候用我）；</li> <li><strong>一组工具</strong>（怎么做）；</li> <li><strong>prompt 模板 / 示例</strong>（具体怎么调）；</li> <li><strong>触发条件</strong>（什么场景自动加载）。</li></ul>
+<p>类比：MCP Tool 是函数，Skill 是「函数 + 调用手册 + 触发器」打包。</p>
+<p>Claude Code 的 <code>.claude/skills/</code> 目录就是 Skills 的物理形态，每个 Skill 一个 markdown + 配套脚本。</p>`} />
+
+<QAHtmlItem question={`114. MCP 的 Resources、Tools、Prompts 三种能力区别？`} html={`<p>MCP Server 能暴露三类东西：</p>
+<table><thead><tr><th>类型</th> <th>是什么</th> <th>例子</th></tr></thead> <tbody><tr><td><strong>Tools</strong></td> <td>模型主动调的函数</td> <td><code>read_file</code>、<code>run_sql</code></td></tr> <tr><td><strong>Resources</strong></td> <td>模型可以读的"资料"</td> <td>一个 README、一份 schema、一份配置</td></tr> <tr><td><strong>Prompts</strong></td> <td>预设的 prompt 模板</td> <td>"用 X 风格生成 Y"</td></tr></tbody></table>
+<p>工程区别：</p>
+<ul><li>Tools 由模型决定<strong>何时调</strong>，Resources 由 Client 决定<strong>何时读</strong>；</li> <li>Resources 不消耗工具调用预算，但占 context；</li> <li>Prompts 让用户能"选择 prompt 模板"而不是手敲。</li></ul>
+<p>实战 90% 用 Tools，Resources / Prompts 用得少但很有用。</p>`} />
+
+<QAHtmlItem question={`115. MCP 有哪些常见的安全风险？`} html={`<p>工具被模型自动调，安全模型必须有：</p>
+<ol><li><strong>凭据泄露</strong>：MCP Server 持有 API key / DB 密码，被 prompt injection 套出来；</li> <li><strong>越权</strong>：Server 给所有 client 看同样工具，租户隔离没做好；</li> <li><strong>数据泄露</strong>：Resources 暴露了不该看的文件；</li> <li><strong>危险操作</strong>：模型自动 <code>rm -rf</code>、删数据库；</li> <li><strong>供应链攻击</strong>：第三方 MCP Server 里有恶意代码。</li></ol>
+<p>防御：</p>
+<ul><li><strong>Bridge 层做权限</strong>：哪些用户能调哪些工具；</li> <li><strong>白名单 + 危险操作 HIL</strong>；</li> <li><strong>审计日志</strong>：每次调用记录 who / when / what；</li> <li><strong>第三方 Server 必须 review</strong>，不要随便装。</li></ul>`} />
+
+<QAHtmlItem question={`116. 常用的 MCP Server 有哪些？`} html={`<p>2026 年生态已经丰富，按用途：</p>
+<table><thead><tr><th>类别</th> <th>代表 Server</th></tr></thead> <tbody><tr><td>文件 / Shell</td> <td>filesystem、shell、git</td></tr> <tr><td>数据库</td> <td>postgres、mysql、sqlite、mongodb</td></tr> <tr><td>浏览器</td> <td>puppeteer、playwright、chrome-devtools</td></tr> <tr><td>搜索</td> <td>brave、google、tavily</td></tr> <tr><td>GitHub / GitLab</td> <td>github、gitlab</td></tr> <tr><td>协作</td> <td>slack、notion、linear、jira</td></tr> <tr><td>设计</td> <td>figma</td></tr> <tr><td>监控</td> <td>sentry、datadog</td></tr> <tr><td>云服务</td> <td>aws、gcp、azure</td></tr></tbody></table>
+<p>实战流程：能用现成的就用现成的，自研只在内部业务工具。</p>`} />
+
+<QAHtmlItem question={`117. Computer Use 和 MCP 是什么关系？`} html={`<p>不是替代，是互补：</p>
+<ul><li><strong>MCP</strong>：通过协议调函数，<strong>精确、快、成本低</strong>；</li> <li><strong>Computer Use</strong>：模型直接操作屏幕，<strong>通用但慢且贵</strong>。</li></ul>
+<p>工程上的策略：</p>
+<ol><li>优先用 MCP（接 API / SDK 的场景）；</li> <li>没有 API 的老软件、跨多软件的复杂流程 → Computer Use 兜底；</li> <li>混用：让 MCP 做主流程，Computer Use 处理零星 GUI 操作。</li></ol>`} />
+
+<QAHtmlItem question={`118. 怎么用 Python 写一个 MCP Server？`} html={`<p>最小可运行（基于 <code>mcp</code> SDK）：</p>
+<div class="language-python extra-class"><pre class="language-python"><code><span class="token keyword">from</span> mcp<span class="token punctuation">.</span>server<span class="token punctuation">.</span>fastmcp <span class="token keyword">import</span> FastMCP
+
+mcp <span class="token operator">=</span> FastMCP<span class="token punctuation">(</span><span class="token string">"demo"</span><span class="token punctuation">)</span>
+
+<span class="token decorator annotation punctuation">@mcp<span class="token punctuation">.</span>tool</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">add</span><span class="token punctuation">(</span>a<span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">,</span> b<span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">int</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""两数相加。"""</span>
+    <span class="token keyword">return</span> a <span class="token operator">+</span> b
+
+<span class="token decorator annotation punctuation">@mcp<span class="token punctuation">.</span>tool</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">def</span> <span class="token function">search_user</span><span class="token punctuation">(</span>name<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""按用户名查询用户信息。"""</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span><span class="token string">"name"</span><span class="token punctuation">:</span> name<span class="token punctuation">,</span> <span class="token string">"email"</span><span class="token punctuation">:</span> <span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span>name<span class="token punctuation">}</span></span><span class="token string">@example.com"</span></span><span class="token punctuation">}</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">"__main__"</span><span class="token punctuation">:</span>
+    mcp<span class="token punctuation">.</span>run<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre></div>
+<p>Claude Code 配置：</p>
+<div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">{</span>
+  <span class="token property">"mcpServers"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"demo"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token property">"command"</span><span class="token operator">:</span> <span class="token string">"python"</span><span class="token punctuation">,</span>
+      <span class="token property">"args"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"server.py"</span><span class="token punctuation">]</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre></div>
+<p>启动 Claude Code → 工具自动出现 → 模型能直接调用。</p>`} />
+
+<QAHtmlItem question={`119. Function Calling 在 Agent 框架里的位置？`} html={`<p>容易混淆：Function Calling、Tool、Agent 是不同层。</p>
+<div class="language- extra-class"><pre class="language-text"><code>Agent  ← 整个跑循环的框架（决定顺序、错误处理、终止）
+ └─ Tool（业务函数封装）
+     └─ Function Calling（模型调用 Tool 的协议）
+         └─ Model（LLM 本体）
+</code></pre></div>
+<p>实战：你写代码时直接写 Tools（业务函数），Agent 框架（LangChain / Agent SDK）负责处理 Function Calling 协议和循环。Function Calling 你基本不直接接触。</p>
+<hr/>`} />

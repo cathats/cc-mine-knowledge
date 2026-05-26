@@ -2,12 +2,246 @@
 sidebar_position: 9
 ---
 
+import QAHtmlItem from "@site/src/components/QAHtmlItem";
+
 # # 九、前端 AI 集成与工程化
 
-- 原页面锚点：[# 九、前端 AI 集成与工程化](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#九、前端-ai-集成与工程化)
+- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#九、前端-ai-集成与工程化)
 
-<iframe
-  src="/poetries-ai-interview/AI面试题汇总.html#九、前端-ai-集成与工程化"
-  style={{width: "100%", height: "80vh", border: "1px solid var(--ifm-color-emphasis-300)", borderRadius: "8px"}}
-  loading="lazy"
-/>
+<QAHtmlItem question={`182. 前端调 LLM API 怎么做流式输出？`} html={`<p>不要用 axios，<strong>用 fetch + ReadableStream</strong>。</p>
+<div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">streamChat</span><span class="token punctuation">(</span>input<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token function-variable function">onDelta</span><span class="token operator">:</span> <span class="token punctuation">(</span>text<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">void</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> controller <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AbortController</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token keyword">const</span> res <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token string">'/api/chat'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    method<span class="token operator">:</span> <span class="token string">'POST'</span><span class="token punctuation">,</span>
+    body<span class="token operator">:</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span><span class="token punctuation">{</span> input <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    headers<span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token string-property property">'Content-Type'</span><span class="token operator">:</span> <span class="token string">'application/json'</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    signal<span class="token operator">:</span> controller<span class="token punctuation">.</span>signal
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+  <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>res<span class="token punctuation">.</span>body<span class="token punctuation">)</span> <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">'no body'</span><span class="token punctuation">)</span>
+  <span class="token keyword">const</span> reader <span class="token operator">=</span> res<span class="token punctuation">.</span>body<span class="token punctuation">.</span><span class="token function">getReader</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token keyword">const</span> decoder <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">TextDecoder</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token keyword">let</span> buffer <span class="token operator">=</span> <span class="token string">''</span>
+
+  <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> <span class="token punctuation">{</span> done<span class="token punctuation">,</span> value <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token keyword">await</span> reader<span class="token punctuation">.</span><span class="token function">read</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>done<span class="token punctuation">)</span> <span class="token keyword">break</span>
+    buffer <span class="token operator">+=</span> decoder<span class="token punctuation">.</span><span class="token function">decode</span><span class="token punctuation">(</span>value<span class="token punctuation">,</span> <span class="token punctuation">{</span> stream<span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+    <span class="token keyword">let</span> idx
+    <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>idx <span class="token operator">=</span> buffer<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span><span class="token string">'\\n\\n'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">!==</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> block <span class="token operator">=</span> buffer<span class="token punctuation">.</span><span class="token function">slice</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> idx<span class="token punctuation">)</span>
+      buffer <span class="token operator">=</span> buffer<span class="token punctuation">.</span><span class="token function">slice</span><span class="token punctuation">(</span>idx <span class="token operator">+</span> <span class="token number">2</span><span class="token punctuation">)</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>block<span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">'data: '</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        <span class="token keyword">const</span> data <span class="token operator">=</span> block<span class="token punctuation">.</span><span class="token function">slice</span><span class="token punctuation">(</span><span class="token number">6</span><span class="token punctuation">)</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>data <span class="token operator">===</span> <span class="token string">'[DONE]'</span><span class="token punctuation">)</span> <span class="token keyword">return</span>
+        <span class="token keyword">const</span> <span class="token punctuation">{</span> delta <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">parse</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span>
+        <span class="token function">onDelta</span><span class="token punctuation">(</span>delta<span class="token punctuation">)</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword">return</span> controller
+<span class="token punctuation">}</span>
+</code></pre></div>
+<p>记得：</p>
+<ul><li>返回 controller 给上层做<strong>中断</strong>；</li> <li>错误要单独处理（一段 chunk 解析失败别拉垮整个流）；</li> <li>TextDecoder 必须用 <code>{ stream: true }</code>，否则中文截断会乱码。</li></ul>`} />
+
+<QAHtmlItem question={`183. 为什么不能在前端直接调 OpenAI / Claude？`} html={`<p>理论上能，实际上不能：</p>
+<ol><li><strong>API key 暴露</strong>：放前端等于公开发钱；</li> <li><strong>没法做权限 / 速率限制</strong>：被人薅羊毛；</li> <li><strong>没法统计 / 计费</strong>：哪个用户花了多少钱；</li> <li><strong>没法注入 system prompt</strong>：用户能改请求；</li> <li><strong>CORS / 跨域</strong>：很多家不支持浏览器直连；</li> <li><strong>没法做合规过滤</strong>。</li></ol>
+<p>必须走自己的后端 BFF / API 网关代理。</p>`} />
+
+<QAHtmlItem question={`184. 流式输出在 React 里怎么处理？`} html={`<p>最简单：</p>
+<div class="language-tsx extra-class"><pre class="language-tsx"><code><span class="token keyword">function</span> <span class="token function">Chat</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> <span class="token punctuation">[</span>text<span class="token punctuation">,</span> setText<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">useState</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">)</span>
+  <span class="token keyword">const</span> controllerRef <span class="token operator">=</span> <span class="token generic-function"><span class="token function">useRef</span><span class="token generic class-name"><span class="token operator">&lt;</span>AbortController<span class="token operator">&gt;</span></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+  <span class="token keyword">const</span> <span class="token function-variable function">send</span> <span class="token operator">=</span> <span class="token keyword">async</span> <span class="token punctuation">(</span>input<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token function">setText</span><span class="token punctuation">(</span><span class="token string">''</span><span class="token punctuation">)</span>
+    controllerRef<span class="token punctuation">.</span>current <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AbortController</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">await</span> <span class="token function">streamChat</span><span class="token punctuation">(</span>input<span class="token punctuation">,</span> <span class="token punctuation">(</span>delta<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+      <span class="token function">setText</span><span class="token punctuation">(</span><span class="token punctuation">(</span>prev<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> prev <span class="token operator">+</span> delta<span class="token punctuation">)</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span> controllerRef<span class="token punctuation">.</span>current<span class="token punctuation">.</span>signal<span class="token punctuation">)</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword">const</span> <span class="token function-variable function">stop</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> controllerRef<span class="token punctuation">.</span>current<span class="token operator">?.</span><span class="token function">abort</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+  <span class="token keyword">return</span> <span class="token punctuation">(</span><span class="token operator">...</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre></div>
+<p>注意：</p>
+<ul><li>每个 token 都 setState 会卡，<strong>用 useReducer 或 ref 缓冲再批量 flush</strong> 在 60fps 内更新；</li> <li>长文章场景上 react-window 虚拟列表；</li> <li>别每个字都触发 layout / scroll 计算。</li></ul>`} />
+
+<QAHtmlItem question={`185. 大段文字流式渲染卡顿怎么办？`} html={`<p>罪魁祸首通常是 Markdown 增量解析。优化：</p>
+<ol><li><strong>节流渲染</strong>：每 30-50ms flush 一次缓冲区，不要每 token 重渲染；</li> <li><strong>Markdown 流式解析</strong>：用 <code>react-markdown</code> + memo，或专门的 streaming-markdown 库；</li> <li><strong>代码高亮异步化</strong>：shiki / Prism 跑在 Web Worker；</li> <li><strong>避免大组件树重渲染</strong>：消息列表只追加，最新一条单独组件；</li> <li><strong>滚动跟随节流</strong>：scrollToBottom 防抖。</li></ol>`} />
+
+<QAHtmlItem question={`186. SSE 和 WebSocket 哪个适合 LLM 流式？`} html={`<table><thead><tr><th></th> <th>SSE</th> <th>WebSocket</th></tr></thead> <tbody><tr><td>方向</td> <td>单向（服务端 → 客户端）</td> <td>双向</td></tr> <tr><td>协议</td> <td>HTTP，简单</td> <td>升级握手，复杂</td></tr> <tr><td>自动重连</td> <td>原生支持</td> <td>自己写</td></tr> <tr><td>代理 / CDN 友好</td> <td>友好</td> <td>一般</td></tr> <tr><td>适合</td> <td>流式输出（LLM 99% 场景）</td> <td>多人协作 / 双向打断</td></tr></tbody></table>
+<p>LLM 默认上 SSE，**有"实时打断 / 多端协同 / 服务端主动推送"**才上 WS。</p>`} />
+
+<QAHtmlItem question={`187. 怎么取消正在流式的请求？`} html={`<p>前端用 <code>AbortController</code>，后端要识别到客户端断开<strong>立即停止 LLM 调用</strong>：</p>
+<ul><li>OpenAI / Anthropic SDK 都支持传 AbortSignal；</li> <li>Node http 监听 <code>req.on('close')</code> 触发 cleanup；</li> <li>已经调过的工具结果要做事务处理或标记中断。</li></ul>
+<p>不要让用户点了"停止"还在烧钱。</p>`} />
+
+<QAHtmlItem question={`188. Token 预算怎么在前端做提示？`} html={`<p>实战经验：</p>
+<ul><li>输入框旁边显示<strong>估算 token 数</strong>（前端用 tiktoken-js / cl100k_base 估）；</li> <li>长度临近上限时变红 + 提示"内容过长，可能截断"；</li> <li>上传文件 / 长 prompt 时显示<strong>预估成本</strong>（按用户套餐计算）。</li></ul>
+<p>库选：<code>gpt-tokenizer</code>、<code>tiktoken-js</code>、<code>@anthropic-ai/tokenizer</code>。</p>`} />
+
+<QAHtmlItem question={`189. 错误怎么向用户展示？`} html={`<p>LLM 错误分几类，UI 表达要区分：</p>
+<table><thead><tr><th>错误</th> <th>用户感知</th> <th>建议表达</th></tr></thead> <tbody><tr><td>速率限制 (429)</td> <td>服务忙</td> <td>"请求过于频繁，请稍后重试"</td></tr> <tr><td>配额耗尽</td> <td>额度问题</td> <td>"今日额度已用完，明日恢复 / 升级套餐"</td></tr> <tr><td>上下文超长</td> <td>内容过长</td> <td>"对话过长，建议开新会话"</td></tr> <tr><td>服务异常</td> <td>后端问题</td> <td>"服务暂时不可用" + 自动重试</td></tr> <tr><td>模型拒答</td> <td>触发安全</td> <td>"无法回答此类问题"</td></tr> <tr><td>网络中断</td> <td>本地问题</td> <td>"网络异常" + 自动重连</td></tr></tbody></table>
+<p>每种都要有<strong>重试按钮 + 错误码</strong>便于排查。</p>`} />
+
+<QAHtmlItem question={`190. ChatGPT 那种"消息列表"怎么实现？`} html={`<p>数据结构：</p>
+<div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">type</span> <span class="token class-name">Message</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+  id<span class="token operator">:</span> <span class="token builtin">string</span>
+  role<span class="token operator">:</span> <span class="token string">'user'</span> <span class="token operator">|</span> <span class="token string">'assistant'</span> <span class="token operator">|</span> <span class="token string">'system'</span> <span class="token operator">|</span> <span class="token string">'tool'</span>
+  content<span class="token operator">:</span> <span class="token builtin">string</span>
+  reasoning<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span>  <span class="token comment">// 思考过程（CoT 显示）</span>
+  toolCalls<span class="token operator">?</span><span class="token operator">:</span> ToolCall<span class="token punctuation">[</span><span class="token punctuation">]</span>
+  attachments<span class="token operator">?</span><span class="token operator">:</span> File<span class="token punctuation">[</span><span class="token punctuation">]</span>
+  createdAt<span class="token operator">:</span> <span class="token builtin">number</span>
+  status<span class="token operator">:</span> <span class="token string">'pending'</span> <span class="token operator">|</span> <span class="token string">'streaming'</span> <span class="token operator">|</span> <span class="token string">'done'</span> <span class="token operator">|</span> <span class="token string">'error'</span>
+<span class="token punctuation">}</span>
+</code></pre></div>
+<p>UI 关键：</p>
+<ul><li><strong>流式追加</strong>：最后一条 message 是 streaming 状态时不断更新 content；</li> <li><strong>虚拟列表</strong>：消息多了用 react-window；</li> <li><strong>滚动控制</strong>：用户手动滚动后停止自动滚到底；</li> <li><strong>重新生成 / 编辑</strong>：编辑某条 user 消息后，<strong>从这条开始的所有后续 message 清空</strong> 再重新跑。</li></ul>`} />
+
+<QAHtmlItem question={`191. 怎么管理多个会话状态？`} html={`<p>类似 ChatGPT 的左侧会话列表：</p>
+<ul><li>会话表 <code>conversations(id, title, created_at, user_id)</code></li> <li>消息表 <code>messages(id, conversation_id, role, content, ...)</code></li> <li>前端状态：当前 conversation_id + 当前 messages 数组</li> <li>路由 <code>/c/[conversationId]</code> 反映在 URL 上，方便分享 / 刷新</li></ul>
+<p>进阶：</p>
+<ul><li>会话标题用 LLM 自动从第一条对话生成；</li> <li>软删除（标记 deleted_at）+ 30 天后真删；</li> <li>大对话支持分页加载；</li> <li>多端同步用 WebSocket / 长轮询。</li></ul>`} />
+
+<QAHtmlItem question={`192. AI 对话用 Edge Runtime 还是 Node？`} html={`<table><thead><tr><th>场景</th> <th>Edge</th> <th>Node</th></tr></thead> <tbody><tr><td>纯流式代理</td> <td>推荐</td> <td>也行</td></tr> <tr><td>复杂业务 / 数据库重</td> <td>不行</td> <td>推荐</td></tr> <tr><td>全球低延迟</td> <td>Edge 完胜</td> <td>受机房限制</td></tr> <tr><td>大依赖 / 二进制包</td> <td>Node 才能跑</td> <td>灵活</td></tr></tbody></table>
+<p>Vercel / Cloudflare 上的 LLM 代理大多 Edge，<strong>复杂 Agent 后端用 Node</strong>（要操作数据库、调多工具、跑长任务）。</p>`} />
+
+<QAHtmlItem question={`193. 怎么实现"图片 + 文字"混合输入？`} html={`<p>数据格式（OpenAI / Anthropic / Qwen-VL 类似）：</p>
+<div class="language-json extra-class"><pre class="language-json"><code><span class="token punctuation">{</span>
+  <span class="token property">"role"</span><span class="token operator">:</span> <span class="token string">"user"</span><span class="token punctuation">,</span>
+  <span class="token property">"content"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span> <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token property">"text"</span><span class="token operator">:</span> <span class="token string">"这张设计稿对应哪些组件？"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span> <span class="token property">"type"</span><span class="token operator">:</span> <span class="token string">"image_url"</span><span class="token punctuation">,</span> <span class="token property">"image_url"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"url"</span><span class="token operator">:</span> <span class="token string">"data:image/png;base64,..."</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre></div>
+<p>前端：</p>
+<ul><li>支持粘贴 / 拖拽 / 文件选择多种方式；</li> <li>图片<strong>前端压缩</strong>到 1MB 以内再传（base64 太大很贵）；</li> <li>上传到对象存储拿 URL 比 base64 便宜（前提是模型能访问到）；</li> <li>显示<strong>缩略图 + 移除按钮</strong>让用户可以删；</li> <li>多图按顺序排列。</li></ul>`} />
+
+<QAHtmlItem question={`194. Markdown 增量渲染怎么处理？`} html={`<p>直接每次都 re-parse 整段会卡。三个套路：</p>
+<ol><li><strong>Streaming Markdown</strong>：用支持流式的 parser（marked / micromark + 增量插件），只 parse 新增片段；</li> <li><strong>代码块缓存</strong>：代码高亮的输出按内容 hash 缓存，重复不重 parse；</li> <li><strong>DOM diff 友好</strong>：用 React key 让 DOM 复用而不重建。</li></ol>
+<p>记得：未闭合的代码块要做容错（用户还没输入 <code>\`\`\`</code> 结尾），不要让一半的代码把后面渲染全搞乱。</p>`} />
+
+<QAHtmlItem question={`195. AI 应用的埋点要监控什么？`} html={`<p>不只是 PV / UV，还要 AI 特有的：</p>
+<ul><li><strong>TTFT</strong>（First Token Time）：用户感知响应速度的关键；</li> <li><strong>完成耗时</strong>：整个回答从发出到结束；</li> <li><strong>Token 消耗</strong>：每用户 / 每会话 / 每模型；</li> <li><strong>成本</strong>：折算成钱；</li> <li><strong>中断率</strong>：用户主动停的比例；</li> <li><strong>重试率 / 重新生成率</strong>：暗示回答质量；</li> <li><strong>拒答率</strong>：触发了安全过滤；</li> <li><strong>错误码分布</strong>；</li> <li><strong>多轮深度</strong>：用户问到第几轮；</li> <li><strong>点赞 / 点踩</strong>：用户反馈最直接信号。</li></ul>`} />
+
+<QAHtmlItem question={`196. AI 应用的"灰度发布"怎么做？`} html={`<p>新 prompt / 新模型 / 新 RAG 配置上线要灰度：</p>
+<ol><li><strong>配置中心驱动</strong>：prompt、模型、RAG 参数从配置中心动态加载，不发版；</li> <li><strong>用户分组</strong>：按 user_id hash 取模，5% → 20% → 50% → 100%；</li> <li><strong>AB 对照</strong>：旧版 vs 新版同时跑，对比关键指标（满意度、token 成本、TTFT）；</li> <li><strong>影子流量</strong>：新版本只跑不返回，只是为了拿数据；</li> <li><strong>快速回滚</strong>：发现问题 5 分钟内切回旧版本。</li></ol>`} />
+
+<QAHtmlItem question={`197. AI 应用的成本怎么算和优化？`} html={`<p>公式：<code>成本 = Σ(每次调用的 input_tokens × in_price + output_tokens × out_price)</code></p>
+<p>优化思路：</p>
+<ul><li><strong>更便宜的模型分流</strong>（简单任务用小模型）；</li> <li><strong>Prompt Caching</strong>（命中率打 1-5 折）；</li> <li><strong>缩短 prompt + 工具描述</strong>；</li> <li><strong>结果裁剪 / 摘要</strong>；</li> <li><strong>多轮压缩</strong>（旧轮次摘要）；</li> <li><strong>业务侧缓存</strong>（同问题先查 KV）；</li> <li><strong>限流 + 套餐</strong>（防止个别用户跑爆）。</li></ul>`} />
+
+<QAHtmlItem question={`198. AI 应用的"国际化"（i18n）有什么特别？`} html={`<p>不只是把文案翻译：</p>
+<ul><li><strong>system prompt 多语言</strong>：每种语言一份；</li> <li><strong>输出语言</strong>：用户的浏览器语言 / 用户偏好；</li> <li><strong>不要混用语言</strong>：在 prompt 里告诉模型"全程用同一种语言"；</li> <li><strong>错误信息 i18n</strong>：拒答信息、错误码都要翻；</li> <li><strong>数字 / 日期 / 货币</strong>格式按 locale；</li> <li><strong>RTL 语言</strong>（阿拉伯语）UI 也要 RTL。</li></ul>`} />
+
+<QAHtmlItem question={`199. AI 应用的"乐观更新"怎么做？`} html={`<p>用户发送消息后<strong>立刻显示在列表里</strong>，不等服务端确认：</p>
+<div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">const</span> <span class="token function-variable function">send</span> <span class="token operator">=</span> <span class="token punctuation">(</span>input<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> tempMsg <span class="token operator">=</span> <span class="token punctuation">{</span> id<span class="token operator">:</span> <span class="token function">nanoid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> role<span class="token operator">:</span> <span class="token string">'user'</span><span class="token punctuation">,</span> content<span class="token operator">:</span> input<span class="token punctuation">,</span> status<span class="token operator">:</span> <span class="token string">'pending'</span> <span class="token punctuation">}</span>
+  <span class="token function">appendMessage</span><span class="token punctuation">(</span>tempMsg<span class="token punctuation">)</span>
+  <span class="token comment">// 异步调用 API</span>
+  api<span class="token punctuation">.</span><span class="token function">chat</span><span class="token punctuation">(</span>input<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span>real<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token function">replaceMessage</span><span class="token punctuation">(</span>tempMsg<span class="token punctuation">.</span>id<span class="token punctuation">,</span> real<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token function">markFailed</span><span class="token punctuation">(</span>tempMsg<span class="token punctuation">.</span>id<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre></div>
+<p>注意：</p>
+<ul><li>失败时用红色 + 重试按钮；</li> <li>不要让"乐观"骗用户：服务端真失败要明确告知；</li> <li>多端同步时小心冲突。</li></ul>`} />
+
+<QAHtmlItem question={`200. AI 自动补全代码（类似 Copilot）怎么实现？`} html={`<p>前端流程：</p>
+<ol><li>编辑器 cursor 位置 + 上下文（前后 200 行 / token）通过 debounce（300-500ms）发给后端；</li> <li>后端 FIM（Fill-in-the-Middle）prompt 调模型；</li> <li>流式返回，前端 ghost text 渲染；</li> <li>Tab 接受 / Esc 拒绝 / 编辑中放弃。</li></ol>
+<p>要点：</p>
+<ul><li>用 <strong>FIM 友好的模型</strong>（DeepSeek-Coder、Qwen-Coder、StarCoder 等）；</li> <li><strong>AbortController</strong> 让新一次输入立刻取消上一次；</li> <li>接受率 / 拒绝率打点优化模型；</li> <li>长函数不要一次全补，让用户分阶段确认。</li></ul>`} />
+
+<QAHtmlItem question={`201. AI 应用要不要 PWA / 离线支持？`} html={`<p>实战经验：</p>
+<ul><li><strong>离线 LLM 一般不支持</strong>（模型太大，浏览器跑不动）；</li> <li><strong>历史会话</strong>可以做离线只读：IndexedDB 存历史，无网时也能看；</li> <li><strong>草稿</strong>离线写，回到在线再发送；</li> <li><strong>不要让 ServiceWorker 缓存 LLM API 接口</strong>，必须 NetworkOnly；</li> <li>静态资源走标准 PWA 缓存就好。</li></ul>`} />
+
+<QAHtmlItem question={`202. Vercel AI SDK 的 useChat 怎么用？`} html={`<p>最简化的 Next.js 集成：</p>
+<div class="language-tsx extra-class"><pre class="language-tsx"><code><span class="token string">'use client'</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> useChat <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'ai/react'</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token keyword">function</span> <span class="token function">Chat</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> <span class="token punctuation">{</span> messages<span class="token punctuation">,</span> input<span class="token punctuation">,</span> handleInputChange<span class="token punctuation">,</span> handleSubmit<span class="token punctuation">,</span> isLoading<span class="token punctuation">,</span> stop <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">useChat</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    api<span class="token operator">:</span> <span class="token string">'/api/chat'</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+  <span class="token keyword">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token punctuation">{</span>messages<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span>m <span class="token operator">=&gt;</span> <span class="token punctuation">(</span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">key</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>m<span class="token punctuation">.</span>id<span class="token punctuation">}</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+          </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>strong</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">{</span>m<span class="token punctuation">.</span>role<span class="token punctuation">}</span><span class="token plain-text">:</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>strong</span><span class="token punctuation">&gt;</span></span><span class="token plain-text"> </span><span class="token punctuation">{</span>m<span class="token punctuation">.</span>content<span class="token punctuation">}</span><span class="token plain-text">
+        </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+      <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>form</span> <span class="token attr-name">onSubmit</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>handleSubmit<span class="token punctuation">}</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+        </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">value</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>input<span class="token punctuation">}</span></span> <span class="token attr-name">onChange</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>handleInputChange<span class="token punctuation">}</span></span> <span class="token attr-name">disabled</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>isLoading<span class="token punctuation">}</span></span> <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+        </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>submit<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">发送</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+        </span><span class="token punctuation">{</span>isLoading <span class="token operator">&amp;&amp;</span> <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span> <span class="token attr-name">onClick</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>stop<span class="token punctuation">}</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">停止</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span><span class="token punctuation">}</span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>form</span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre></div>
+<p>后端：</p>
+<div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">import</span> <span class="token punctuation">{</span> openai <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'@ai-sdk/openai'</span>
+<span class="token keyword">import</span> <span class="token punctuation">{</span> streamText <span class="token punctuation">}</span> <span class="token keyword">from</span> <span class="token string">'ai'</span>
+
+<span class="token keyword">export</span> <span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token constant">POST</span><span class="token punctuation">(</span>req<span class="token operator">:</span> Request<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> <span class="token punctuation">{</span> messages <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token keyword">await</span> req<span class="token punctuation">.</span><span class="token function">json</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+  <span class="token keyword">const</span> result <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">streamText</span><span class="token punctuation">(</span><span class="token punctuation">{</span> model<span class="token operator">:</span> <span class="token function">openai</span><span class="token punctuation">(</span><span class="token string">'gpt-4o'</span><span class="token punctuation">)</span><span class="token punctuation">,</span> messages <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token keyword">return</span> result<span class="token punctuation">.</span><span class="token function">toDataStreamResponse</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span>
+</code></pre></div>
+<p>省去了流式协议处理、状态管理、停止逻辑的大量样板。</p>`} />
+
+<QAHtmlItem question={`203. 消息编辑 / 重新生成怎么实现？`} html={`<p>设计要点：</p>
+<ul><li><strong>编辑 user 消息</strong>：编辑后，<strong>从这条开始的所有后续消息全清空</strong>，从这条重新跑；</li> <li><strong>重新生成 assistant 消息</strong>：保留 user 消息，<strong>重新调用模型</strong>生成新回答，前一次答案要么覆盖、要么作为历史版本保留；</li> <li><strong>历史版本切换</strong>：UI 上 <code>&lt; 1/3 &gt;</code> 形式让用户在版本间切换；</li> <li><strong>状态机</strong>：消息有 <code>editing | streaming | done | error</code> 几种状态，UI 分别处理。</li></ul>
+<p>数据库 schema：</p>
+<div class="language-ts extra-class"><pre class="language-ts"><code>message <span class="token punctuation">{</span>
+  id<span class="token punctuation">,</span> conversation_id<span class="token punctuation">,</span> role<span class="token punctuation">,</span> content<span class="token punctuation">,</span>
+  parent_id<span class="token punctuation">,</span>   <span class="token comment">// 编辑后的新分支</span>
+  version<span class="token punctuation">,</span>     <span class="token comment">// 同一节点的多版本</span>
+  is_active    <span class="token comment">// 当前显示的版本</span>
+<span class="token punctuation">}</span>
+</code></pre></div>`} />
+
+<QAHtmlItem question={`204. 对话分支 / Fork 怎么做？`} html={`<p>ChatGPT / Claude 都支持"从某条消息分叉重问"。</p>
+<p>实现：</p>
+<ul><li>数据结构从"线性 list"改成"树"：每条 message 有 <code>parent_id</code>；</li> <li>UI 在分叉点展示版本切换；</li> <li>默认只显示一条线性路径（最新分支）；</li> <li>URL 带 <code>?branch=xxx</code> 让分享和回访能恢复对应分支。</li></ul>
+<p>收益：用户能探索不同问法，<strong>避免反复开新会话浪费上下文</strong>。</p>`} />
+
+<QAHtmlItem question={`205. 语音输入 / TTS 怎么集成？`} html={`<p>输入侧（STT，语音转文字）：</p>
+<ul><li>浏览器原生 <code>webkitSpeechRecognition</code>（兼容性一般）；</li> <li>接 Whisper API / 阿里云 NLS / 讯飞，自己录音 + 上传；</li> <li>实时流式 STT 用 WebSocket 推送音频流。</li></ul>
+<p>输出侧（TTS，文字转语音）：</p>
+<ul><li>浏览器原生 <code>speechSynthesis</code>（音色差）；</li> <li>接 OpenAI TTS / Azure Speech / 火山 / 阿里 TTS；</li> <li>流式 TTS：边生成边播（豆包同款）。</li></ul>
+<p>工程要点：</p>
+<ul><li>录音前<strong>先申请权限</strong>，UI 提示；</li> <li>静音检测自动结束录音；</li> <li>实时 STT 用 SSE / WebSocket 流式更新 UI；</li> <li>TTS 队列管理：一句一句播，能跳过 / 暂停。</li></ul>`} />
+
+<QAHtmlItem question={`206. 文件上传 + 处理流怎么做？`} html={`<p>复杂场景常见：</p>
+<ol><li><strong>前端</strong>：File API 读文件 → 压缩 / 切片 → 上传到对象存储；</li> <li><strong>后端</strong>：拿到文件 URL → 用 Loader 解析（PDF / Word / Excel） → 切片 + embedding → 入向量库；</li> <li><strong>会话注入</strong>：把文件 ID 写入当前 conversation 的 metadata；</li> <li><strong>检索</strong>：用户提问时，先检索该 conversation 关联的文件；</li> <li><strong>UI</strong>：上传时显示进度，处理中显示 loading，处理完显示文件卡片。</li></ol>
+<p>注意：</p>
+<ul><li>大文件分片上传（避免超时）；</li> <li>异步处理（不阻塞对话）；</li> <li>处理失败时给清晰错误（PDF 加密 / 编码异常等）；</li> <li>单用户的存储配额必须控制。</li></ul>`} />
+
+<QAHtmlItem question={`207. Markdown 渲染中的 XSS 安全？`} html={`<p>LLM 输出会被渲染成 Markdown / HTML，潜在 XSS 风险：</p>
+<ul><li>用户问"输出 <code>&lt;script&gt;</code> 标签" → 模型照写 → 直接渲染就执行了；</li> <li>第三方 RAG 文档里夹带恶意脚本。</li></ul>
+<p>防御：</p>
+<ul><li>用 <strong>DOMPurify</strong> 等库过滤 HTML；</li> <li>Markdown 渲染器关闭 raw HTML（<code>marked</code> 设 <code>sanitize</code>、<code>react-markdown</code> 默认安全）；</li> <li>代码块单独渲染（用 <code>&lt;pre&gt;&lt;code&gt;</code> 包裹，不解析）；</li> <li>iframe 嵌入要警惕；</li> <li>用户输入也要消毒，不能让用户在自己问题里塞攻击。</li></ul>`} />
+
+<QAHtmlItem question={`208. 移动端 AI 应用有什么特殊问题？`} html={`<p>不是把 Web 缩小那么简单：</p>
+<ul><li><strong>键盘弹起</strong>：消息列表要重新计算 viewport 高度；</li> <li><strong>流式更新滚动</strong>：要避免每个 token 都触发滚动；</li> <li><strong>后台切换</strong>：iOS / Android 切到后台后流式可能断，要做重连；</li> <li><strong>网络抖动</strong>：弱网下 SSE 易断，要支持断点续传 / 重试；</li> <li><strong>输入法预测</strong>：避免误触发发送；</li> <li><strong>语音输入</strong>：移动端用户期望更高；</li> <li><strong>流量提示</strong>：长文 / 图片传输前提示用户；</li> <li><strong>省电</strong>：长时间流式 + 不间断渲染会发热掉电。</li></ul>`} />
+
+<QAHtmlItem question={`209. 怎么实现"AI 自动补全代码"（Copilot 同款）？`} html={`<p>前端流程：</p>
+<ol><li>监听 cursor 位置 + 上下文（前后 200 行）；</li> <li>debounce 300-500ms 后请求后端；</li> <li>后端用 <strong>FIM（Fill-in-the-Middle）prompt</strong> 调模型；</li> <li>流式返回，前端 ghost text 渲染；</li> <li>Tab 接受 / Esc 拒绝 / 编辑中放弃。</li></ol>
+<p>关键点：</p>
+<ul><li>FIM-friendly 的模型才合用（DeepSeek-Coder、Qwen-Coder、StarCoder）；</li> <li><code>AbortController</code> 让新一次输入立刻取消上一次；</li> <li>接受率 / 拒绝率打点持续优化；</li> <li>长函数分阶段补，让用户分阶段确认。</li></ul>`} />
+
+<QAHtmlItem question={`210. 怎么把 AI 集成到富文本编辑器（TipTap / Lexical / Slate）？`} html={`<p>主流交互模式：</p>
+<ol><li><strong>斜杠菜单（/）</strong>：输入 <code>/ai</code> 弹出操作面板（总结 / 改写 / 翻译 / 续写）；</li> <li><strong>选中改写</strong>：选一段文字 → 右键 / 浮动按钮 → "用 AI 改写"；</li> <li><strong>行内补全</strong>：cursor 后显示 ghost text，Tab 接受；</li> <li><strong>侧边栏 AI 助手</strong>：独立面板，可与文档双向同步。</li></ol>
+<p>工程要点：</p>
+<ul><li>AI 改写要走<strong>事务</strong>：原文 → 模型流式输出 → 替换；用户能撤销；</li> <li>多人协作时要走 CRDT，AI 写入算特殊作者；</li> <li>长文档别全量喂模型，<strong>只喂选中片段 + 必要上下文</strong>。</li></ul>
+<hr/>`} />

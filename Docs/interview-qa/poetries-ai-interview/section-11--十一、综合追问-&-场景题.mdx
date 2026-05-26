@@ -2,12 +2,104 @@
 sidebar_position: 11
 ---
 
+import QAHtmlItem from "@site/src/components/QAHtmlItem";
+
 # # 十一、综合追问 & 场景题
 
-- 原页面锚点：[# 十一、综合追问 & 场景题](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#十一、综合追问-场景题)
+- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#十一、综合追问-场景题)
 
-<iframe
-  src="/poetries-ai-interview/AI面试题汇总.html#十一、综合追问-场景题"
-  style={{width: "100%", height: "80vh", border: "1px solid var(--ifm-color-emphasis-300)", borderRadius: "8px"}}
-  loading="lazy"
-/>
+<QAHtmlItem question={`256. 场景题：公司想做一个"内部知识库问答机器人"，让你设计技术方案。`} html={`<p>参考答案（30 秒能讲完的版本）：</p>
+<ol><li><strong>数据层</strong>：把 Confluence / 内部 Wiki / 飞书 / Git 文档汇总，做 ETL 进入统一存储；</li> <li><strong>切片 + Embedding</strong>：递归切分（500/50 overlap），用 bge-m3 入 Milvus / pgvector；</li> <li><strong>检索</strong>：Hybrid Search（ES BM25 + 向量），用 bge-reranker 重排 top 5；</li> <li><strong>生成</strong>：Claude / Qwen，prompt 强制带引用 + 拒答；</li> <li><strong>接入层</strong>：Next.js BFF + SSE 流式，Slack / 飞书机器人 + 网页 UI 双入口；</li> <li><strong>可观测</strong>：Langfuse 自部署，监控 TTFT / 召回 / 满意度；</li> <li><strong>合规</strong>：私有化部署 / 数据不出网 / 审计日志；</li> <li><strong>运营闭环</strong>：用户点踩的样本进入"待整理"队列，由文档负责人补充 / 更新。</li></ol>
+<p>面试官追问：</p>
+<ul><li>"为什么不直接用 ChatGPT？" → 数据合规 + 内部知识；</li> <li>"为什么 Hybrid 不只向量？" → 产品编号 / 错误码 / 专有名词；</li> <li>"怎么评估效果？" → 准备 100 条 ground truth + RAGAS 跑回归。</li></ul>`} />
+
+<QAHtmlItem question={`257. 场景题：让你做一个"代码评审 Agent"，怎么设计？`} html={`<p>最小可行：</p>
+<ol><li><strong>触发</strong>：GitHub Actions / GitLab Webhook，PR 创建时拉 diff；</li> <li><strong>预处理</strong>：识别变更文件类型、过滤 vendor / lock / generated；</li> <li><strong>Tool 集合</strong>：read_file、search_code、run_linter、run_tests；</li> <li><strong>Agent 流程</strong>：
+<ul><li>读 diff → 理解改了什么；</li> <li>看 related files 拿上下文；</li> <li>跑 lint / type check 看明显问题；</li> <li>用 LLM 评审 → 输出结构化建议；</li></ul></li> <li><strong>输出</strong>：行级 comment + 总体评分 + 必须修 / 建议修两档；</li> <li><strong>HIL</strong>：高严重度自动 request changes，其他只提建议；</li> <li><strong>反馈闭环</strong>：开发者标记"无效建议"，反过来调 Agent。</li></ol>
+<p>要点：<strong>让 Agent 跑工具拿事实</strong>，不要让它凭"读 diff"瞎评。</p>`} />
+
+<QAHtmlItem question={`258. 场景题：公司 ToB 客户要私有化 LLM，从硬件到部署你怎么选？`} html={`<p>阶段化：</p>
+<ul><li><strong>POC</strong>：单卡 A10/A100，跑 Qwen-14B AWQ 量化版，Ollama / vLLM 起来快；</li> <li><strong>试运行</strong>：2-4 卡 H800 / 4090 部署，跑 32B / 70B AWQ，vLLM + nginx 反代；</li> <li><strong>生产</strong>：8 卡 H100 集群 + K8s + vLLM serverless 模式 + Prometheus + Grafana；</li> <li><strong>监控</strong>：tokens/s、并发、显存、温度、错误率；</li> <li><strong>备份模型</strong>：主模型挂时自动切到备模型。</li></ul>
+<p>要点：<strong>别一上来上 70B</strong>，先证明小模型 + RAG 业务跑得通，再扩。</p>`} />
+
+<QAHtmlItem question={`259. 场景题：让你优化一个"AI 回答平均要 30 秒"的产品，怎么排查？`} html={`<p>按"用户感知"维度拆：</p>
+<table><thead><tr><th>维度</th> <th>排查</th> <th>优化</th></tr></thead> <tbody><tr><td>TTFT</td> <td>streaming 是否开 / 网关是否缓冲</td> <td>上 SSE / 关闭 buffer</td></tr> <tr><td>首跳网络</td> <td>是否走 CDN / 边缘</td> <td>Edge Runtime / CDN</td></tr> <tr><td>Prompt 长度</td> <td>system + 历史是否过长</td> <td>压缩 + Prompt Caching</td></tr> <tr><td>工具调用</td> <td>串行 vs 并行</td> <td>改并行</td></tr> <tr><td>RAG 检索</td> <td>单次召回耗时</td> <td>加索引 / Reranker 异步</td></tr> <tr><td>模型</td> <td>是否用了 o1 / DeepSeek-R1 这种慢模型</td> <td>切到 Haiku / GPT-4o-mini</td></tr> <tr><td>后端处理</td> <td>是否在 LLM 调用前同步等了一堆数据</td> <td>提前并行加载</td></tr></tbody></table>
+<p>不要只看一个数字，<strong>画成瀑布图</strong>才知道时间花在哪。</p>`} />
+
+<QAHtmlItem question={`260. 场景题：让你做一个"AI 客服"，怎么保证不乱说话？`} html={`<p>防护多层：</p>
+<ol><li><strong>意图分类</strong>：先用小模型分类用户意图，<strong>只有白名单内意图才走 AI 回答</strong>；</li> <li><strong>强 system prompt</strong>：明确回答范围 + 拒答规则；</li> <li><strong>RAG 限定知识源</strong>：只用公司知识库，不让模型用通用知识；</li> <li><strong>关键事实校验</strong>：金额、订单状态、政策类回答用代码二次确认；</li> <li><strong>敏感词过滤</strong>：输出前过一层；</li> <li><strong>HIL 兜底</strong>：遇到投诉 / 复杂诉求 → 转人工；</li> <li><strong>审计 + 回溯</strong>：所有对话保存，方便事后排查；</li> <li><strong>持续学习</strong>：用户点踩样本 → 改 prompt / 加 FAQ。</li></ol>
+<p>宁可"我不知道"也不能"瞎说"。</p>`} />
+
+<QAHtmlItem question={`261. 场景题：把 ChatGPT 类的对话产品迁移到你们的国产替代方案，应该注意什么？`} html={`<p>不只是改 SDK：</p>
+<ul><li><strong>Tokenizer 不同</strong>：上下文 token 估算要重新校准；</li> <li><strong>system / user / assistant 行为差异</strong>：有些国产模型对 system 不那么"听话"，要在 user 里补强；</li> <li><strong>工具调用格式</strong>：每家略有差异，封一层适配器；</li> <li><strong>流式协议</strong>：不一定都标准 SSE，写 fallback；</li> <li><strong>速率限制 / 重试</strong>：不同家限流策略不一样；</li> <li><strong>多模态接口</strong>：图片 base64 / URL 支持度不同；</li> <li><strong>价格 / token 模式</strong>：算成本要重新做。</li></ul>
+<p>测试一定要跑<strong>端到端真实场景</strong>而不是单元测试。</p>`} />
+
+<QAHtmlItem question={`262. 场景题：用户对 AI 输出不满意怎么办？`} html={`<p>产品 / 工程都要联动：</p>
+<ul><li><strong>用户视角</strong>：点踩 / 重试 / 编辑 / 切模型；</li> <li><strong>数据视角</strong>：点踩样本进入标注队列，每周一次回顾改进 prompt / 知识库；</li> <li><strong>指标视角</strong>：监控点赞率 / 点踩率 / 重试率 / 满意度；</li> <li><strong>闭环视角</strong>：改进上线后 A/B 看指标是否上升。</li></ul>
+<p>不要只在用户体验上做"满意度评分"，要落到<strong>可改进的样本</strong>。</p>`} />
+
+<QAHtmlItem question={`263. 场景题：模型出现"复读机"现象怎么处理？`} html={`<p>复读 = 同一句话不断重复，原因可能：</p>
+<ul><li>temperature 太低 + presence_penalty 太低；</li> <li>模型陷入局部最优；</li> <li>部分量化模型常出。</li></ul>
+<p>处理：</p>
+<ul><li>适度提高 temperature（0.5-0.7）；</li> <li>设置 presence_penalty / frequency_penalty；</li> <li>用更大的模型；</li> <li>streaming 时前端检测连续 N 个 token 重复 → 中断；</li> <li>后端检测连续 N 句重复 → 中止并重试。</li></ul>`} />
+
+<QAHtmlItem question={`264. 场景题：怎么做"AI 应用的灾备 / 降级"？`} html={`<p>模型挂了你的产品不能挂：</p>
+<ul><li><strong>多模型互备</strong>：主模型超时 → 自动切到备模型；</li> <li><strong>降级回答</strong>：模型完全不可用时返回 FAQ / 文档链接；</li> <li><strong>缓存兜底</strong>：常见问题预生成答案，挂了也能答；</li> <li><strong>熔断</strong>：错误率高于阈值时自动熔断，不要持续重试拖垮系统；</li> <li><strong>状态保留</strong>：用户的会话别因为模型挂了就丢，能继续接着用。</li></ul>`} />
+
+<QAHtmlItem question={`265. 自我介绍：怎么把"我做过 AI 项目"讲得让面试官眼前一亮？`} html={`<p>模板：</p>
+<div class="language- extra-class"><pre class="language-text"><code>我在 [项目名] 里做了一个 [一句话功能]，
+解决的核心问题是 [业务痛点]。
+技术上用了 [前端栈] + [LLM + 工具] + [RAG / Agent / 工作流]，
+关键决策点是 [选型 + 为什么]。
+上线后 [一两个指标] 提升了 [X%]，
+我自己负责 [模块 / 端到端]，
+踩过的最深的坑是 [真实事故]，最后用 [方案] 解决。
+</code></pre></div>
+<p>要点：<strong>有数字 + 有决策 + 有踩坑</strong>，三件套缺一不可。</p>`} />
+
+<QAHtmlItem question={`266. 场景题：让你设计一个 Cursor 同款 AI 编辑器，怎么做？`} html={`<p>参考方案：</p>
+<ol><li><strong>编辑器内核</strong>：Monaco / CodeMirror 起步，复用社区基础；</li> <li><strong>AI 集成方式</strong>：
+<ul><li>行内补全（ghost text + FIM）；</li> <li>选中改写（command palette / 浮动菜单）；</li> <li>侧边栏对话（项目级问答）；</li> <li>端到端任务（Agent 跑工具改文件）；</li></ul></li> <li><strong>上下文管理</strong>：当前文件 + workspace 索引（用向量库）；</li> <li><strong>工具集</strong>：read_file / write_file / edit_file / run_command / search_code；</li> <li><strong>Agent 模式</strong>：plan + execute + diff 三阶段；</li> <li><strong>diff 预览</strong>：AI 改动以 diff 形式预览，用户 Accept/Reject；</li> <li><strong>历史回滚</strong>：每次 AI 改动一个 commit；</li> <li><strong>多模型支持</strong>：用户可切 Claude / GPT / 本地模型；</li> <li><strong>隐私模式</strong>：可选不把代码上传给云模型。</li></ol>
+<p>被追问要点：</p>
+<ul><li>为什么 Cursor 比 Copilot 好？→ workspace 级上下文 + 多文件编辑；</li> <li>diff 预览为什么必须？→ 用户对 AI 改动可控；</li> <li>本地模型有什么用？→ 合规 / 离线 / 省钱。</li></ul>`} />
+
+<QAHtmlItem question={`267. 场景题：AI 监控告警归并系统怎么做？`} html={`<p>业务背景：监控系统一天发几千条告警，人工看不过来。</p>
+<p>方案：</p>
+<ol><li><strong>采集</strong>：从 Prometheus / Grafana / Sentry / 日志系统 webhook 接告警；</li> <li><strong>归一化</strong>：把不同来源的告警转成统一 schema（service / severity / message / time）；</li> <li><strong>聚类</strong>：用 embedding 做向量聚类，相似告警归一组；</li> <li><strong>AI 总结</strong>：每组让 LLM 生成"根因猜测 + 影响范围 + 建议动作"；</li> <li><strong>优先级</strong>：用 LLM 评分 P0-P3，根据评分推不同通道（电话 / IM / 邮件）；</li> <li><strong>关联历史</strong>：检索过去类似告警的解决记录，附在新告警旁边；</li> <li><strong>HIL</strong>：高严重度自动推 + 人工确认才能 ack；</li> <li><strong>闭环</strong>：值班人员标"误报 / 已解决"反向训练系统。</li></ol>
+<p>收益：值班人从看 1000 条到看 20 组，注意力聚焦。</p>`} />
+
+<QAHtmlItem question={`268. 场景题：智能客服路由（什么时候转人工）？`} html={`<p>不能让 AI 永远兜底。分流策略：</p>
+<table><thead><tr><th>场景</th> <th>处理</th></tr></thead> <tbody><tr><td>简单查询 / FAQ</td> <td>AI 直接答</td></tr> <tr><td>涉及金额 / 退款 / 投诉</td> <td>直接转人工</td></tr> <tr><td>用户连续点踩 N 次</td> <td>转人工</td></tr> <tr><td>AI 检索后置信度低（无相关文档）</td> <td>转人工</td></tr> <tr><td>用户明确说"转人工"</td> <td>立即转</td></tr> <tr><td>涉及合规 / 法务</td> <td>转人工</td></tr> <tr><td>情绪检测：用户情绪激动</td> <td>转人工</td></tr> <tr><td>关键词触发（"投诉 12315"）</td> <td>转人工 + 飞书报警</td></tr></tbody></table>
+<p>转人工时<strong>带上对话摘要</strong>，人工不用从头看。</p>`} />
+
+<QAHtmlItem question={`269. 场景题：让 AI 把设计稿自动转代码？`} html={`<p>务实方案（注意：完全自动不可行，<strong>辅助</strong>才靠谱）：</p>
+<ol><li><strong>输入</strong>：Figma URL 或截图；</li> <li><strong>解析</strong>：调 Figma API 拿出结构化设计描述（不是裸图）；</li> <li><strong>组件匹配</strong>：和<strong>项目已有组件库</strong>（antd / shadcn）做 mapping；</li> <li><strong>代码生成</strong>：让 AI 输出<strong>用项目组件</strong>实现的代码，不是从零写；</li> <li><strong>样式提取</strong>：颜色、字号、间距从 design token 取；</li> <li><strong>响应式</strong>：要求 AI 输出多个 breakpoint；</li> <li><strong>人工 review</strong>：开发者 review + 微调，不能 100% 替代。</li></ol>
+<p>避免误区：让 AI"看图写代码"会得到一堆 inline 样式的烂代码，<strong>结合设计系统的代码生成</strong>才有产品价值。</p>`} />
+
+<QAHtmlItem question={`270. 场景题：AI 应用的 SLA 怎么保证？`} html={`<p>外部模型不可控，SLA 必须做兜底：</p>
+<ul><li><strong>多模型互备</strong>：主模型挂自动切；</li> <li><strong>本地小模型兜底</strong>：基本能答简单问题；</li> <li><strong>熔断 + 降级</strong>：错误率高于阈值就熔断，UI 降级为"暂不可用"；</li> <li><strong>缓存预热</strong>：常见问题预生成答案；</li> <li><strong>告警</strong>：错误率 / 延迟 / token 用量异常立刻报警；</li> <li><strong>SLA 透明化</strong>：状态页 + 月度报告；</li> <li><strong>限流 + 公平队列</strong>：避免少数用户拖垮所有人。</li></ul>
+<p>ToB 客户要看 SLA 数字，<strong>说不准就别承诺</strong>。</p>`} />
+
+<QAHtmlItem question={`271. 场景题：多端 AI 助手（Web + iOS + Android + 桌面）怎么统一？`} html={`<p>架构：</p>
+<ul><li><strong>核心 API 后端</strong>：唯一事实来源，所有端都调它；</li> <li><strong>会话存储</strong>：服务端为主，端侧只缓存；</li> <li><strong>流式协议</strong>：SSE 或 WebSocket，端侧统一适配；</li> <li><strong>同步</strong>：端侧 push 新消息到服务端 + 拉取其他端的更新（WebSocket 推送）；</li> <li><strong>离线</strong>：端侧支持只读历史 + 草稿；</li> <li><strong>能力差异</strong>：端侧能力不一致（如桌面端能跑本地模型、移动端只能调云），后端按 capability 协商；</li> <li><strong>共享 prompt / 配置</strong>：通过 globalConfig 接口下发。</li></ul>
+<p>不要每端各写一套核心逻辑，<strong>重 BFF 或 SDK</strong>。</p>`} />
+
+<QAHtmlItem question={`272. 场景题：AI 应用全链路可观测性怎么做？`} html={`<p>至少四层：</p>
+<table><thead><tr><th>层</th> <th>工具</th> <th>看什么</th></tr></thead> <tbody><tr><td>前端</td> <td>Sentry / Web Vitals</td> <td>客户端错误、TTFB、流式卡顿</td></tr> <tr><td>接入层</td> <td>Nginx / API Gateway</td> <td>请求量、错误码、限流</td></tr> <tr><td>LLM 调用层</td> <td>LangSmith / Langfuse</td> <td>每次调用的 prompt、token、cost、耗时</td></tr> <tr><td>Agent / RAG</td> <td>自定义 trace</td> <td>每步 plan / tool / retrieval / output</td></tr></tbody></table>
+<p>聚合：</p>
+<ul><li>全链路 trace_id 串起来；</li> <li>每个请求能从前端点击 → 后端 → LLM → 工具调用 → 回包，一条线追完；</li> <li>关键指标进 Grafana 看实时；</li> <li>错误归类 + alerting。</li></ul>
+<p>没有可观测 = 没法调优 = 没法上线。</p>`} />
+
+<QAHtmlItem question={`273. 场景题：AI 应用合规风险有哪些？怎么处理？`} html={`<p>不只是技术问题，是法务问题：</p>
+<ul><li><strong>数据出境</strong>：海外模型涉及，国内业务要走合规审批；</li> <li><strong>PII 保护</strong>：身份证 / 手机号 / 地址不能明文进 prompt；</li> <li><strong>未成年人保护</strong>：可能触发实名 + 内容过滤；</li> <li><strong>大模型生成内容备案</strong>（国内）：明确告知用户"内容由 AI 生成"；</li> <li><strong>版权</strong>：生成内容的归属、训练数据的合法性；</li> <li><strong>审计</strong>：所有对话保留 N 天，监管要求随时调取；</li> <li><strong>拒答场景</strong>：政治、暴力、医疗 / 法律建议要做明显约束。</li></ul>
+<p>合规上线前一定有法务过一遍。</p>`} />
+
+<QAHtmlItem question={`274. 场景题：把团队"AI First"推进开发流程，怎么做？`} html={`<p>不是发几个 ChatGPT 账号就行：</p>
+<ol><li><strong>统一工具链</strong>：选一两个核心工具（Claude Code / Cursor / Copilot），统一付费 / 培训；</li> <li><strong>统一 prompt 库</strong>：把团队验证过的高质量 prompt 共享出来；</li> <li><strong>统一 MCP / Skills</strong>：把内部工具封装成可复用能力；</li> <li><strong>代码规范同步给 AI</strong>：CLAUDE.md / .cursorrules 写好；</li> <li><strong>培训 + 分享</strong>：每周一次 AI 用法分享，沉淀 best practices；</li> <li><strong>指标驱动</strong>：跟踪 AI 工具使用率 / commit 中 AI 参与比例 / 节省工时；</li> <li><strong>底线规则</strong>：什么不能让 AI 做（提交不读、改生产、写测试不审）；</li> <li><strong>合规护栏</strong>：源代码 / 客户数据不进个人账号。</li></ol>
+<p>记住：<strong>工具好不好用，看团队</strong>；不是发完账号就万事大吉。</p>`} />
+
+<QAHtmlItem question={`275. 终极开放题：如果让你三年内深耕一个 AI 方向，你会选哪个？`} html={`<p>参考思路（不要背，要按自己情况答）：</p>
+<ul><li><strong>AI Agent 工程</strong>：架构 + 工具 + 落地，需求量最大；</li> <li><strong>Context Engineering / Prompt Engineering</strong>：基础设施型岗位；</li> <li><strong>RAG / 知识工程</strong>：ToB 长青；</li> <li><strong>AI 基础设施</strong>：网关 / 推理 / 评估，技术门槛高；</li> <li><strong>多模态 / 端侧</strong>：手机 / 车机 / 机器人，硬件结合；</li> <li><strong>AI 安全 / 对齐</strong>：研究偏多，国内还没大规模商业化；</li> <li><strong>AI 产品</strong>：把模型能力翻译成用户价值，需求量上升。</li></ul>
+<p>要点：</p>
+<ul><li>选<strong>自己有兴趣</strong> + <strong>公司有资源</strong>的方向；</li> <li>不要追最热（红海早进的人吃肉，晚进的人吃灰）；</li> <li><strong>每个方向都需要工程能力 + 业务理解</strong>，纯算法岗在缩。</li></ul>
+<hr/>`} />

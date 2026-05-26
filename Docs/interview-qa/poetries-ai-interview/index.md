@@ -2,9 +2,12 @@
 sidebar_position: 20
 ---
 
-# AI面试题汇总（Poetries 原样版）
+# AI面试题汇总（Poetries）
 
-以下内容按原网站分类，保持原样式与代码格式：
+来源页面：
+- https://interview.poetries.top/ai-interview/AI面试题汇总.html
+
+按原页面章节分类：
 
 - [# 一、AI 与大模型基础](./section-01--一、AI-与大模型基础)
 - [# 二、Prompt 工程](./section-02--二、Prompt-工程)
