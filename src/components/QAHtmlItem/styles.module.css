@@ -42,3 +42,83 @@
   background: var(--ifm-color-primary);
   color: white;
 }
+
+.answer :global(pre) {
+  background: #0b1020;
+  color: #e6edf3;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  border: 1px solid #1f2937;
+}
+
+.answer :global(code) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.answer :global(p > code),
+.answer :global(li > code),
+.answer :global(td > code) {
+  background: rgba(27, 31, 35, 0.08);
+  color: #b42318;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.answer :global(.token.comment),
+.answer :global(.token.prolog),
+.answer :global(.token.doctype),
+.answer :global(.token.cdata) {
+  color: #8b949e;
+}
+
+.answer :global(.token.punctuation) {
+  color: #c9d1d9;
+}
+
+.answer :global(.token.property),
+.answer :global(.token.tag),
+.answer :global(.token.constant),
+.answer :global(.token.symbol),
+.answer :global(.token.deleted) {
+  color: #79c0ff;
+}
+
+.answer :global(.token.boolean),
+.answer :global(.token.number) {
+  color: #a5d6ff;
+}
+
+.answer :global(.token.selector),
+.answer :global(.token.attr-name),
+.answer :global(.token.string),
+.answer :global(.token.char),
+.answer :global(.token.builtin),
+.answer :global(.token.inserted) {
+  color: #a5d6ff;
+}
+
+.answer :global(.token.operator),
+.answer :global(.token.entity),
+.answer :global(.token.url),
+.answer :global(.language-css .token.string),
+.answer :global(.style .token.string) {
+  color: #ff7b72;
+}
+
+.answer :global(.token.atrule),
+.answer :global(.token.attr-value),
+.answer :global(.token.keyword) {
+  color: #ff7b72;
+}
+
+.answer :global(.token.function),
+.answer :global(.token.class-name) {
+  color: #d2a8ff;
+}
+
+.answer :global(.token.regex),
+.answer :global(.token.important),
+.answer :global(.token.variable) {
+  color: #ffa657;
+}
