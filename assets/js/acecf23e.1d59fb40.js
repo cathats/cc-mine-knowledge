@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunksite=self.webpackChunksite||[]).push([["3220"],{1912(e){e.exports=JSON.parse('{"blogBasePath":"/cc-mine-knowledge/blog","blogTitle":"Blog","authorsListPath":"/cc-mine-knowledge/blog/authors"}')}}]);
