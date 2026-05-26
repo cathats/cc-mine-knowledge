@@ -17,4 +17,4 @@ sidebar_position: 1
 
 - [AI 未分类面试 Q&A](./ai-agent-qa)
 - [Hello-Agents Extra 专题题库](./hello-agents-extra)
-- [Poetries AI面试题汇总](./poetries-ai-interview)
+- [AI面试题-1](./poetries-ai-interview)

@@ -6,7 +6,7 @@ import QAHtmlItem from "@site/src/components/QAHtmlItem";
 
 # # 七、LangChain / LangGraph 框架
 
-- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#七、langchain-langgraph-框架)
+<div dangerouslySetInnerHTML={{ __html: `<blockquote><p>不是所有团队都用 LangChain，但<strong>面试官几乎都会问</strong>。能讲清"LangChain 解决了什么"和"什么时候用 LangGraph"，比背 API 强。</p></blockquote>` }} />
 
 <QAHtmlItem question={`140. LangChain 是什么？它真正帮你做了什么？`} html={`<p>LangChain 把"LLM 应用开发的常见动作"封装成可组合的组件：</p>
 <ul><li><strong>Models</strong>：统一调多家 LLM 的接口；</li> <li><strong>Prompts</strong>：模板、变量、few-shot 管理；</li> <li><strong>Output Parsers</strong>：把模型输出解析成结构化数据；</li> <li><strong>Tools / Toolkits</strong>：工具定义 + Function Calling 流程；</li> <li><strong>Memory</strong>：对话历史 / 长期记忆封装；</li> <li><strong>Retrievers</strong>：向量库 / RAG 检索抽象；</li> <li><strong>Chains / LCEL</strong>：把上面这些<strong>链式拼起来</strong>；</li> <li><strong>Agents</strong>：常见 Agent 模式（ReAct、Plan-and-Execute 等）。</li></ul>

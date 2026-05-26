@@ -2,7 +2,7 @@
 sidebar_position: 20
 ---
 
-# AI面试题汇总（Poetries）
+# AI面试题-1
 
 来源页面：
 - https://interview.poetries.top/ai-interview/AI面试题汇总.html

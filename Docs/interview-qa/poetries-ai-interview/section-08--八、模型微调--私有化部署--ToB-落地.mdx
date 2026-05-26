@@ -6,7 +6,7 @@ import QAHtmlItem from "@site/src/components/QAHtmlItem";
 
 # # 八、模型微调 / 私有化部署 / ToB 落地
 
-- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#八、模型微调-私有化部署-tob-落地)
+<div dangerouslySetInnerHTML={{ __html: `<blockquote><p>资深岗 / ToB 岗常问。前端工程师不一定要会训练，但必须知道<strong>什么时候要微调、什么时候不要</strong>。</p></blockquote>` }} />
 
 <QAHtmlItem question={`159. 大模型在 ToB 业务里落地有哪些核心难点？`} html={`<p>直接拿通用模型给企业用会撞上这些坑：</p>
 <ul><li><strong>不懂业务</strong>：训练语料是公网通用知识，对企业内部规章、产品文档一无所知；</li> <li><strong>幻觉风险</strong>：不知道时不会闭嘴，会"看着像那么回事"地编；</li> <li><strong>数据合规</strong>：员工 / 客户敏感信息不能直接送外部 API；</li> <li><strong>响应慢、单价高</strong>：交互密集业务直接调外部模型不友好；</li> <li><strong>可控性差</strong>：用户问答风格不符合公司话术。</li></ul>

@@ -6,7 +6,7 @@ import QAHtmlItem from "@site/src/components/QAHtmlItem";
 
 # # 六、Memory 与上下文管理
 
-- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#六、memory-与上下文管理)
+<div dangerouslySetInnerHTML={{ __html: `<blockquote><p>大模型本质是<strong>无状态</strong>的。所谓"它记得我之前说过什么"，其实都是你做的 Memory 管理。这一节决定 Agent 能不能跑长。</p></blockquote>` }} />
 
 <QAHtmlItem question={`120. 大模型本身是无状态的，为什么 ChatGPT 能记住上文？`} html={`<p>因为客户端 / 服务端帮它<strong>把历史 messages 拼回去了</strong>。每次请求都把整段对话历史塞进 prompt。</p>
 <p>模型本身永远在做"看这次输入 → 产生这次输出"。你看到的"记忆"全是<strong>外部状态管理</strong>。</p>

@@ -6,7 +6,7 @@ import QAHtmlItem from "@site/src/components/QAHtmlItem";
 
 # # 十一、综合追问 & 场景题
 
-- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#十一、综合追问-场景题)
+<div dangerouslySetInnerHTML={{ __html: `<blockquote><p>这一节是把前面所有知识揉到具体场景，面试官最爱问。能讲出真实方案就赢。</p></blockquote>` }} />
 
 <QAHtmlItem question={`256. 场景题：公司想做一个"内部知识库问答机器人"，让你设计技术方案。`} html={`<p>参考答案（30 秒能讲完的版本）：</p>
 <ol><li><strong>数据层</strong>：把 Confluence / 内部 Wiki / 飞书 / Git 文档汇总，做 ETL 进入统一存储；</li> <li><strong>切片 + Embedding</strong>：递归切分（500/50 overlap），用 bge-m3 入 Milvus / pgvector；</li> <li><strong>检索</strong>：Hybrid Search（ES BM25 + 向量），用 bge-reranker 重排 top 5；</li> <li><strong>生成</strong>：Claude / Qwen，prompt 强制带引用 + 拒答；</li> <li><strong>接入层</strong>：Next.js BFF + SSE 流式，Slack / 飞书机器人 + 网页 UI 双入口；</li> <li><strong>可观测</strong>：Langfuse 自部署，监控 TTFT / 召回 / 满意度；</li> <li><strong>合规</strong>：私有化部署 / 数据不出网 / 审计日志；</li> <li><strong>运营闭环</strong>：用户点踩的样本进入"待整理"队列，由文档负责人补充 / 更新。</li></ol>

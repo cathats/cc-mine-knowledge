@@ -6,7 +6,7 @@ import QAHtmlItem from "@site/src/components/QAHtmlItem";
 
 # # 四、RAG 检索增强生成
 
-- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#四、rag-检索增强生成)
+<div dangerouslySetInnerHTML={{ __html: `<blockquote><p>ToB 项目几乎必问 RAG。能讲清"为什么 RAG 比微调更常用"和"切片 / Embedding / 检索 / 重排"四个环节的优化，就拉开差距了。</p></blockquote>` }} />
 
 <QAHtmlItem question={`68. 什么是 RAG？为什么要发明它？`} html={`<p>RAG = <strong>Retrieval-Augmented Generation</strong>：用户提问 → 先去知识库<strong>检索</strong>相关片段 → 把片段塞进 prompt <strong>增强</strong>上下文 → 模型基于这些<strong>生成</strong>回答。</p>
 <p>为什么需要它：</p>

@@ -6,7 +6,7 @@ import QAHtmlItem from "@site/src/components/QAHtmlItem";
 
 # # 九、前端 AI 集成与工程化
 
-- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#九、前端-ai-集成与工程化)
+<div dangerouslySetInnerHTML={{ __html: `<blockquote><p>前端的主场。AI 应用最终都要落到一个 UI 上，怎么把流式输出做丝滑、怎么管理多会话状态、怎么处理用户中断，这些是前端真正能拉差距的部分。</p></blockquote>` }} />
 
 <QAHtmlItem question={`182. 前端调 LLM API 怎么做流式输出？`} html={`<p>不要用 axios，<strong>用 fetch + ReadableStream</strong>。</p>
 <div class="language-ts extra-class"><pre class="language-ts"><code><span class="token keyword">async</span> <span class="token keyword">function</span> <span class="token function">streamChat</span><span class="token punctuation">(</span>input<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token function-variable function">onDelta</span><span class="token operator">:</span> <span class="token punctuation">(</span>text<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">void</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>

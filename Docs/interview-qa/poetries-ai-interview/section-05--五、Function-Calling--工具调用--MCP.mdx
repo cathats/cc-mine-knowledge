@@ -6,7 +6,7 @@ import QAHtmlItem from "@site/src/components/QAHtmlItem";
 
 # # 五、Function Calling / 工具调用 / MCP
 
-- 原页面锚点：[直达本节](https://interview.poetries.top/ai-interview/AI%E9%9D%A2%E8%AF%95%E9%A2%98%E6%B1%87%E6%80%BB.html#五、function-calling-工具调用-mcp)
+<div dangerouslySetInnerHTML={{ __html: `<blockquote><p>这一年面试问得最多的实战题之一。能讲清"Function Calling 怎么走完一轮"和"MCP 解决了什么问题"，就证明你真的写过 Agent。</p></blockquote>` }} />
 
 <QAHtmlItem question={`91. Function Calling 是什么？背后的机制？`} html={`<p>模型<strong>不会直接执行</strong>任何函数，它做的事是：</p>
 <ol><li>收到 prompt 和工具列表（包含 name / description / parameters schema）；</li> <li>模型判断该调用哪个工具、参数是什么，<strong>以 JSON 形式吐出来</strong>；</li> <li>你的代码读到这个 JSON → <strong>实际执行函数</strong> → 把返回值拼成 ToolMessage 喂回模型；</li> <li>模型基于新结果继续决策。</li></ol>
