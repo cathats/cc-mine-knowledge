@@ -16,3 +16,4 @@ sidebar_position: 1
 当前示例：
 
 - [AI 未分类面试 Q&A](./ai-agent-qa)
+- [Hello-Agents Extra 专题题库](./hello-agents-extra)

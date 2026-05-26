@@ -1,0 +1,25 @@
+---
+sidebar_position: 2
+---
+
+import QAItem from '@site/src/components/QAItem';
+
+# Extra02 上下文工程 Q&A
+
+对应原文：[Extra02-上下文工程补充知识](https://github.com/datawhalechina/hello-agents/blob/main/Extra-Chapter/Extra02-%E4%B8%8A%E4%B8%8B%E6%96%87%E5%B7%A5%E7%A8%8B%E8%A1%A5%E5%85%85%E7%9F%A5%E8%AF%86.md)
+
+<QAItem question="Q1：什么是上下文工程？与提示词工程有什么区别？">
+提示词工程主要优化“怎么问”，上下文工程关注“给模型什么上下文、何时给、给多少、如何组织”，是系统级的信息调度。
+</QAItem>
+
+<QAItem question="Q2：为什么会出现 Context Engineer 角色？">
+因为 Agent 应用中上下文来源复杂（历史、检索、工具结果、环境状态），仅靠写提示词不足以保证稳定表现，需要专门做上下文设计与治理。
+</QAItem>
+
+<QAItem question="Q3：常见上下文问题有哪些？">
+包括 Context Poisoning（错误信息注入）、Distraction（信息过载）、Confusion（无关信息干扰）、Clash（上下文冲突）。
+</QAItem>
+
+<QAItem question="Q4：上下文工程有哪些核心策略？">
+写入、选择、压缩、隔离四类策略：先控制来源，再做筛选和摘要，必要时通过多 Agent 或执行环境隔离降低串扰。
+</QAItem>

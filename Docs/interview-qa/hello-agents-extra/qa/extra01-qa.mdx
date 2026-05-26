@@ -1,0 +1,40 @@
+---
+sidebar_position: 1
+---
+
+import QAItem from '@site/src/components/QAItem';
+
+# Extra01 面试 Q&A（对应参考答案）
+
+对应原文：
+
+- [问题集](https://github.com/datawhalechina/hello-agents/blob/main/Extra-Chapter/Extra01-%E9%9D%A2%E8%AF%95%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93.md)
+- [参考答案](https://github.com/datawhalechina/hello-agents/blob/main/Extra-Chapter/Extra01-%E5%8F%82%E8%80%83%E7%AD%94%E6%A1%88.md)
+
+<QAItem question="Q1：如何一句话定义 LLM / VLM / Agent 三者关系？">
+LLM 提供语言推理与生成能力，VLM 在此基础上加入视觉理解与跨模态对齐，Agent 则把模型能力组织成“可执行任务系统”，通过工具、记忆和策略循环完成目标。
+</QAItem>
+
+<QAItem question="Q2：Transformer 的自注意力为什么适合长序列？">
+自注意力可直接建立任意位置 token 的依赖关系，路径长度固定为 1；相比 RNN 的串行传递，能更高效捕获长距离关系并支持并行计算。
+</QAItem>
+
+<QAItem question="Q3：LLM 推理解码策略怎么选？">
+Greedy 稳定但保守；Beam Search 更偏最优序列但易同质化；Top-K 控制候选空间；Top-P 按概率质量动态截断，通常更平衡创造性和稳定性。
+</QAItem>
+
+<QAItem question="Q4：RLHF 相比 SFT 的核心价值是什么？">
+SFT 学会“像标注数据那样回答”，RLHF 进一步通过偏好信号优化“更符合人类偏好与安全边界”的行为，核心是对齐而不只是拟合。
+</QAItem>
+
+<QAItem question="Q5：Agent 的核心组件有哪些？">
+通常包括：规划/推理（LLM）、工具调用（Tool Use）、短期与长期记忆（Memory）、执行控制循环（Reason-Act-Observe）以及安全约束。
+</QAItem>
+
+<QAItem question="Q6：RAG 与微调的主要差异？">
+RAG 通过检索外部知识增强回答，优势是知识更新快、成本低、可追溯；微调更适合固化风格与能力，但更新知识成本更高。
+</QAItem>
+
+<QAItem question="Q7：如何评估 Agent，而不只看最终答案？">
+除了结果正确率，还要看工具调用效率、步骤稳定性、失败恢复能力、成本/时延、鲁棒性、安全性与可解释性。
+</QAItem>

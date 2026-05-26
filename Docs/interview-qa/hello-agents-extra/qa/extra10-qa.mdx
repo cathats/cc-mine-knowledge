@@ -1,0 +1,21 @@
+---
+sidebar_position: 10
+---
+
+import QAItem from '@site/src/components/QAItem';
+
+# Extra10 Agent 自进化 Q&A
+
+对应原文：[Extra10-Agent自进化](https://github.com/datawhalechina/hello-agents/blob/main/Extra-Chapter/Extra10-Agent%E8%87%AA%E8%BF%9B%E5%8C%96.md)
+
+<QAItem question="Q1：Agent 自进化的目标是什么？">
+让系统通过反馈与数据闭环持续提升任务成功率、稳定性和成本效率，而不是仅靠人工频繁调参。
+</QAItem>
+
+<QAItem question="Q2：实现自进化的关键环节有哪些？">
+数据采集（轨迹/失败样本）、评估指标、策略更新（提示词/工具路由/模型策略）、回归验证与灰度发布。
+</QAItem>
+
+<QAItem question="Q3：自进化最大的风险是什么？">
+错误策略被放大或奖励偏置导致能力漂移，所以必须配套安全阈值、人工审核点和可回滚机制。
+</QAItem>

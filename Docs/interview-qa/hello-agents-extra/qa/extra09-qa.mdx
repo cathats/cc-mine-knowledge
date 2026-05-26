@@ -1,0 +1,21 @@
+---
+sidebar_position: 9
+---
+
+import QAItem from '@site/src/components/QAItem';
+
+# Extra09 Agent 开发踩坑 Q&A
+
+对应原文：[Extra09-Agent应用开发实践踩坑与经验分享](https://github.com/datawhalechina/hello-agents/blob/main/Extra-Chapter/Extra09-Agent%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5%E8%B8%A9%E5%9D%91%E4%B8%8E%E7%BB%8F%E9%AA%8C%E5%88%86%E4%BA%AB.md)
+
+<QAItem question="Q1：工具设计为什么不能“越自由越好”？">
+过于自由会导致不可诊断和不可控；过度原子化又会导致调用链冗长。应分层设计并约束关键读写路径。
+</QAItem>
+
+<QAItem question="Q2：提示词优化的正确顺序是什么？">
+先做可观测，再做单变量对比优化；不要在缺乏追踪数据时盲调提示词。
+</QAItem>
+
+<QAItem question="Q3：上下文治理的本质是什么？">
+不是单纯扩窗口，而是做注意力调度：分层优先级、截断回查、历史压缩、关键约束保护。
+</QAItem>

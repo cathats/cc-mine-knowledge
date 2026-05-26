@@ -1,0 +1,21 @@
+---
+sidebar_position: 12
+---
+
+import QAItem from '@site/src/components/QAItem';
+
+# Extra12 旅行助手后训练实战 Q&A
+
+对应原文：[Extra12-旅行助手后训练实战](https://github.com/datawhalechina/hello-agents/blob/main/Extra-Chapter/Extra12-%E6%97%85%E8%A1%8C%E5%8A%A9%E6%89%8B%E5%90%8E%E8%AE%AD%E7%BB%83%E5%AE%9E%E6%88%98.md)
+
+<QAItem question="Q1：旅行助手后训练通常优化什么？">
+优化任务完成率、行程规划合理性、工具调用准确性、用户偏好匹配与回复可执行性。
+</QAItem>
+
+<QAItem question="Q2：后训练数据如何构造？">
+从真实任务轨迹中抽取高质量成功样本、失败修复样本与偏好对比样本，形成 SFT/RL 可用数据。
+</QAItem>
+
+<QAItem question="Q3：如何验证后训练有效？">
+离线评测看任务指标提升，在线 A/B 看真实用户成功率与满意度，并监控成本、时延和异常率。
+</QAItem>
