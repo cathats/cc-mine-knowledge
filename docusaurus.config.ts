@@ -2,6 +2,8 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
+const gaTrackingId = process.env.GA_TRACKING_ID;
+
 const config: Config = {
   title: 'CC Mine Knowledge',
   tagline: '文档沉淀与面试 QA',
@@ -40,6 +42,14 @@ const config: Config = {
         theme: {
           customCss: './src/css/custom.css',
         },
+        ...(gaTrackingId
+          ? {
+              gtag: {
+                trackingID: gaTrackingId,
+                anonymizeIP: true,
+              },
+            }
+          : {}),
       } satisfies Preset.Options,
     ],
   ],

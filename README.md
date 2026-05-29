@@ -32,3 +32,17 @@ npm run serve   # 本地预览 build 结果
 - GitHub 用户：`cathats`
 - 仓库：`cc-mine-knowledge`
 - `baseUrl`: `/cc-mine-knowledge/`
+
+## 接入 Google Analytics（GA4）
+
+1. 在 GA 创建 Web Data Stream，拿到 `Measurement ID`（格式如 `G-XXXXXXXXXX`）
+2. 发布前注入环境变量并部署：
+
+```bash
+GA_TRACKING_ID=G-XXXXXXXXXX GIT_USER=cathats npm run deploy
+```
+
+说明：
+
+- 未设置 `GA_TRACKING_ID` 时不会注入统计脚本
+- 已开启 `anonymizeIP: true`
